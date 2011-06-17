@@ -1,12 +1,12 @@
 
-         VMware::API::LabManager - Interface to the Lab Manager API
+              VMware::vCloud - Interface to the VMware vCloud API
 
 ================================================================================
 SYNOPSIS:
 ================================================================================
 
-  VMware::API::LabManager provides a programattical interface to both the
-  public and private APIs for the VMware product Lab Manager.
+  VMware::vcloud provides a programattical interface to vCloud API provided
+  for the automation and control of VMware's vCloud Director product.
 
 ================================================================================
 INSTALLATION:
@@ -29,13 +29,7 @@ USAGE:
 AUTHORSHIP:
 ================================================================================
 
-    VMware::API::LabManager vVERSIONTAG (DATETAG)
+    VMware::vCloud vVERSIONTAG (DATETAG)
 
-    (c) 2009-2010, Phillip Pollard <bennie@cpan.org>
+    (c) 2009-2011, Phillip Pollard <bennie@cpan.org>
     Released under the Perl Artistic License
-
-    Additional contributions:
-        Cameron Berkenpas <cberkenpas@paypal.com>
-
-    Derived from VMWare::LabmanSoap alpha.
-    by David F. Kinder, Jr, <dkinder@davidkinder.net>

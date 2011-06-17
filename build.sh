@@ -1,10 +1,10 @@
 #!/bin/sh
 set -e
 
-MODULE='lib/VMware/API/LabManager.pm'
+MODULE='lib/VMware/vCloud.pm'
 VERSION=`cvs status $MODULE | grep Working | awk '{ print $3 }'`
 DATE=`date '+%Y/%m/%d'`
-TARDIR="VMware-API-LabManager-$VERSION";
+TARDIR="VMware-vCloud-$VERSION";
 
 echo
 echo "Module  : $MODULE"
