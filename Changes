@@ -1,9 +1,23 @@
 Revision history for VMware::vCloud
 
-1.0  DATETAG
+1.2 DATETAG
+
+  The server is now properly queried for the API version.
+  XML to data structure translation of server responses is now in place.  
+
+  Added:
+    api_versions() - Method to check API version supported by server
+	
+  Improved:
+    login() - Now returns a data structure of accessible organizations upon successful login.
+  
+1.1  2011/06/16
 
   Initial connection seed from sample code from hosting.com with comments from
   the VMware communities.
 
    - http://mylhat.com/blog/2009/09/hosting-com-vcloud-express-api-example-in-perl/
    - http://communities.vmware.com/thread/284659
+
+   Added:
+     login() - Basic method to get a login token from the server.

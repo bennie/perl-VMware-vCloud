@@ -1,6 +1,7 @@
 package VMware::vCloud;
 
 use LWP;
+use XML::Simple;
 use strict;
 
 our $VERSION = 'VERSIONTAG';
@@ -58,6 +59,7 @@ sub config {
 
 sub _debug {
   my $self = shift @_;
+  return undef unless $self->{debug};
   while ( my $debug = shift @_ ) {
     chomp $debug;
     print STDERR "DEBUG: $debug\n";
@@ -66,32 +68,53 @@ sub _debug {
 
 sub _fault {
   my $self = shift @_;
-
+  die Dumper(@_);
 }
 
 sub _regenerate {
   my $self = shift @_;
-
+  
   $self->{ua} = LWP::UserAgent->new;
   $self->{ua}->cookie_jar({});
+
+  $self->{api_version} = $self->api_version();
+  $self->_debug("API version: $self->{api_version}");
+  
+  $self->{url_base} = URI->new('https://'. $self->{hostname} .'/api/v'. $self->{api_version} .'/');
+  $self->_debug("API URL: $self->{url_base}");
 
 }
 
 ### Public methods
 
+sub api_version {
+  my $self = shift @_;
+  my $url = URI->new('https://'. $self->{hostname} .'/api/versions'); # Check API version first!
+  my $req = HTTP::Request->new( GET =>  $url ); 
+  my $response = $self->{ua}->request($req);
+  if ( $response->status_line eq '200 OK' ) {
+    my $info = XMLin( $response->content );
+    return $info->{VersionInfo}->{Version};
+  } else {
+    $self->_fault($response);
+  }
+}
+
 sub login {
   my $self = shift @_;
-  my $url = URI->new('https://'. $self->{hostname} .'/api/v1.0/login'); # Check API version first!
-  my $req = HTTP::Request->new( POST =>  $url ); 
+  my $req = HTTP::Request->new( POST =>  $self->{url_base} . 'login' ); 
 
   $req->authorization_basic( $self->{username} .'@'. $self->{orgname}, $self->{password} ); 
   my $response = $self->{ua}->request($req);
 
-print "Authentication status: ".$response->status_line."\n";
-print "Response WWW-Authenticate Header: ".$response->header("WWW-Authenticate")."\n";
-print $response->content;
+  $self->_debug( "Authentication status: " . $response->status_line );
+  $self->_debug( "Response WWW-Authenticate Header: " . $response->header("WWW-Authenticate") );
 
-  return $response;
+  if ( $response->status_line eq '200 OK' ) {
+    return XMLin( $response->content );
+  } else {
+    $self->_fault($response);
+  }
 }
 
 1;
@@ -130,7 +153,8 @@ they provide an illustrative example of the vCloud API. All scripts have
 their own POD and accept command line parameters in a similar way to the VIPERL
 SDK utilities and vghetto scripts.
 
-    conditions.pl - An example displaying an objects conditions.
+    login.pl - An example script that demonstrates logging in to the 
+server.
 
 =head1 PERL MODULE METHODS
 
@@ -171,6 +195,16 @@ U<Arguments>
 
 =back
 
+=head1 PUBLIC API METHODS
+
+=head2 api_version
+
+This call queries the server for the current version of the API supported. It is implicitly called when library is instanced.
+
+=head2 login
+
+This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access..
+
 =head1 BUGS AND LIMITATIONS
 
 =head1 CONFUSING ERROR CODES
@@ -180,7 +214,13 @@ U<Arguments>
 If someone from VMware is reading this, and has control of the API, I would
 dearly love a few changes, that might help things:
 
- (more soon)
+=over 4
+
+=item System - It would really help if in the API guide it mentions early on that the organization to connect as an administrator account, IE: the macro organization to which all other orgs descend from is called "System." That helps a lot.
+
+=item External vs External - When you have the concept of a "fenced" network for a vApp, one of the most confusing points is the local network that is natted to the outside is referred to as "External" as is the outside IPs that the network is routed to. Walk a new user through some of the Org creation wizards and watch the confusion. Bad choice of names.
+
+=back
 
 =head1 VERSION
 
@@ -197,6 +237,7 @@ dearly love a few changes, that might help things:
 =head1 DEPENDENCIES
 
   LWP
+  XML::Simple
 
 =head1 LICENSE AND COPYRIGHT
 

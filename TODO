@@ -3,9 +3,10 @@ TODO!
 These items are goals and plans for the future for this module. They recognize
 deficiencies and inefficiencies in the current module:
 
-- Add all internal methods
+- Support all methods. :)
+
+- Unified LWP handling to be able to dump transactions at debug and error levels
+- Better handling of errors
 - Improve documentation on return values on all methods
 - Verify that all methods are complete
-- Better handling of method handles
-- Better handling of errors
 - Handle all "singleton" return conditions to force arrays when appropriate
