@@ -7,7 +7,7 @@ version_from: lib/VMware/vCloud.pm
 
 requires:
   LWP: 0
-  XML::Simple 0
+  XML::Simple: 0
 
 distribution_type: module
 generated_by: ExtUtils::MakeMaker version 6.17

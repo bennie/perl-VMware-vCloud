@@ -1,5 +1,6 @@
 package VMware::vCloud;
 
+use Data::Dumper;
 use LWP;
 use XML::Simple;
 use strict;

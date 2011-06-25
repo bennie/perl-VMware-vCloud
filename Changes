@@ -1,6 +1,13 @@
 Revision history for VMware::vCloud
 
-1.2 DATETAG
+1.3 DATETAG
+
+  Corrected:
+    Error calling Data::Dumper on _fault()
+    Syntax error in META.yml
+    Removed POD references to VMware::API::LabManager
+
+1.2 2011/06/23
 
   The server is now properly queried for the API version.
   XML to data structure translation of server responses is now in place.  
