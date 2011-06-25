@@ -2,6 +2,14 @@ Revision history for VMware::vCloud
 
 1.4 DATETAG
 
+  Added:
+    org_get() - List an orgs catalog and contents
+	examples/org_get.pl - Usage of the org_get() method
+  
+  Improved:
+    login() - Returned data structure is now only the Org branch of the content.
+	t/02-header.t - Added a dummy "ok" to avoid "dubious" warnings until test is expanded.
+
   Corrected:
     Removed POD references to VMware::API::LabManager
 

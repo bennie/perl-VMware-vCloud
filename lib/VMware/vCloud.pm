@@ -112,7 +112,31 @@ sub login {
   $self->_debug( "Response WWW-Authenticate Header: " . $response->header("WWW-Authenticate") );
 
   if ( $response->status_line eq '200 OK' ) {
-    return XMLin( $response->content );
+    my $data = XMLin( $response->content );
+    return $data->{Org};
+  } else {
+    $self->_fault($response);
+  }
+}
+
+### API methods
+
+sub org_get {
+  my $self = shift @_;
+  my $org  = shift @_;
+  my $req;
+  
+  if ( $org =~ /^\d+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'org/' . $org );
+  } else {
+    $req = HTTP::Request->new( GET =>  $org );
+  }
+
+  my $response = $self->{ua}->request($req);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data->{Link};
   } else {
     $self->_fault($response);
   }
@@ -159,12 +183,12 @@ server.
 
 =head1 PERL MODULE METHODS
 
-These methods are not direct API calls. They represent the methods that create
-or module as a "wrapper" for the Labmanager API.
+These methods are not API calls. They represent the methods that create
+this module as a "wrapper" for the vCloud API.
 
 =head2 new
 
-This method creates the Labmanager object.
+This method creates the vCloud object.
 
 U<Arguments>
 
@@ -190,7 +214,7 @@ U<Arguments>
 
 =item die_on_fault - 1 to cause the program to die verbosely on a soap fault. 0 for the fault object to be returned on the call and for die() to not be called. Defaults to 1. If you choose not to die_on_fault (for example, if you are writing a CGI) you will want to check all return objects to see if they are fault objects or not.
 
-=item ssl_timeout - seconds to wait for timeout. Defaults to 3600. (1hr) This is how long a transaction response will be waited for once submitted. For slow storage systems and full clones, you may want to up this higher. If you find yourself setting this to more than 6 hours, your Lab Manager setup is probably not in the best shape.
+=item ssl_timeout - seconds to wait for timeout. Defaults to 3600. (1hr) This is how long a transaction response will be waited for once submitted. For slow storage systems and full clones, you may want to up this higher. If you find yourself setting this to more than 6 hours, your vCloud setup is probably not in the best shape.
 
 =item hostname, orgname, username and password - All of these values can be changed from the original settings on new(). This is handing for performing multiple transactions across organizations.
 
@@ -205,6 +229,13 @@ This call queries the server for the current version of the API supported. It is
 =head2 login
 
 This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access..
+
+=head2 org_get($orgid or $orgurl)
+
+As a parameter, this method thakes the raw numeric id of the organization or the full URL detailed for the organization from the login catalog.
+
+It returns the catalog of the requested organization.
+
 
 =head1 BUGS AND LIMITATIONS
 

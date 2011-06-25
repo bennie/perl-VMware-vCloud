@@ -2,7 +2,9 @@ use Test;
 use VMware::vCloud;
 use strict;
 
-BEGIN { plan tests => 0 };
+BEGIN { plan tests => 1 };
+
+ok(1); # Skipping the header test for now.
 
 #my $labman = new VMware::API::LabManager (
 #  qw/username password localhost organizationname workspacename/
