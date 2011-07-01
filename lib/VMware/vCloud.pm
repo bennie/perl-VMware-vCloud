@@ -83,7 +83,6 @@ sub _regenerate {
   
   $self->{url_base} = URI->new('https://'. $self->{hostname} .'/api/v'. $self->{api_version} .'/');
   $self->_debug("API URL: $self->{url_base}");
-
 }
 
 ### Public methods
