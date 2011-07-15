@@ -120,6 +120,27 @@ sub login {
 
 ### API methods
 
+sub catalog_get {
+  my $self = shift @_;
+  my $cat  = shift @_;
+  my $req;
+  
+  if ( $cat =~ /^\d+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'catalog/' . $cat );
+  } else {
+    $req = HTTP::Request->new( GET =>  $cat );
+  }
+
+  my $response = $self->{ua}->request($req);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data->{Link};
+  } else {
+    $self->_fault($response);
+  }
+}
+
 sub org_get {
   my $self = shift @_;
   my $org  = shift @_;
@@ -229,12 +250,17 @@ This call queries the server for the current version of the API supported. It is
 
 This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access..
 
+=head2 catalog_get($catid or $caturl)
+
+As a parameter, this method thakes the raw numeric id of the catalog or the full URL detailed for the catalog from the login catalog.
+
+It returns the requested catalog.
+
 =head2 org_get($orgid or $orgurl)
 
 As a parameter, this method thakes the raw numeric id of the organization or the full URL detailed for the organization from the login catalog.
 
-It returns the catalog of the requested organization.
-
+It returns the requested organization.
 
 =head1 BUGS AND LIMITATIONS
 

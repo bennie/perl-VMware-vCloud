@@ -1,6 +1,11 @@
 Revision history for VMware::vCloud
 
-1.5 DATETAG
+1.6 DATETAG
+
+  Added:
+    catalog_get() - List a catalogs contents
+
+1.5 2011/07/01
 
   Improved:
     Tests now skip() and don't report fail when connection info is not
@@ -9,7 +14,7 @@ Revision history for VMware::vCloud
 1.4 2011/06/25
 
   Added:
-    org_get() - List an orgs catalog and contents
+    org_get() - List an organizations contents
 	examples/org_get.pl - Usage of the org_get() method
   
   Improved:
