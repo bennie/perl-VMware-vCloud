@@ -1,9 +1,17 @@
 Revision history for VMware::vCloud
 
-1.6 DATETAG
+1.7 DATETAG
+
+  Added:    
+    vdc_get() - List the contents of a Virtual Datacenter
+    vapp_get() - List the contents of a vApp
+
+1.6 2011/07/14
 
   Added:
     catalog_get() - List a catalogs contents
+
+  NB: Release created and submitted from the air on cross-country flight. :)
 
 1.5 2011/07/01
 

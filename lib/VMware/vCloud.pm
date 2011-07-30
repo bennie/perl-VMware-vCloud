@@ -135,7 +135,7 @@ sub catalog_get {
 
   if ( $response->status_line eq '200 OK' ) {
     my $data = XMLin( $response->content );
-	return $data->{Link};
+	return $data;
   } else {
     $self->_fault($response);
   }
@@ -156,7 +156,49 @@ sub org_get {
 
   if ( $response->status_line eq '200 OK' ) {
     my $data = XMLin( $response->content );
-	return $data->{Link};
+	return $data;
+  } else {
+    $self->_fault($response);
+  }
+}
+
+sub vdc_get {
+  my $self = shift @_;
+  my $vdc  = shift @_;
+  my $req;
+  
+  if ( $vdc =~ /^\d+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'org/' . $vdc );
+  } else {
+    $req = HTTP::Request->new( GET =>  $vdc );
+  }
+
+  my $response = $self->{ua}->request($req);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data;
+  } else {
+    $self->_fault($response);
+  }
+}
+
+sub vapp_get {
+  my $self = shift @_;
+  my $vapp = shift @_;
+  my $req;
+  
+  if ( $vapp =~ /^\d+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vApp/vapp-' . $vapp );
+  } else {
+    $req = HTTP::Request->new( GET =>  $vapp );
+  }
+
+  my $response = $self->{ua}->request($req);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data;
   } else {
     $self->_fault($response);
   }
@@ -262,9 +304,17 @@ As a parameter, this method thakes the raw numeric id of the organization or the
 
 It returns the requested organization.
 
-=head1 BUGS AND LIMITATIONS
+=head2 vdc_get($vdcid or $vdcurl)
 
-=head1 CONFUSING ERROR CODES
+As a parameter, this method thakes the raw numeric id of the virtual data center or the full URL detailed a catalog.
+
+It returns the requested VDC.
+
+=head2 vapp_get($vappid or $vappurl)
+
+As a parameter, this method thakes the raw numeric id of the vApp or the full URL.
+
+It returns the requested vApp.
 
 =head1 WISH LIST
 
