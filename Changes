@@ -1,10 +1,22 @@
 Revision history for VMware::vCloud
 
-1.7 DATETAG
+1.600.08 DATETAG
+
+  Added:
+	examples/list-vms.pl - List all vApps and their VMs
+
+  Improved:
+    Added POD to the examples: get_org.pl, login.pl
+    Fixed double "v" on new Version in POD
+
+1.600.07 2011/07/29
 
   Added:    
     vdc_get() - List the contents of a Virtual Datacenter
     vapp_get() - List the contents of a vApp
+
+  Fixed:
+    Moved to multidigit CPAN-compatible version to work around single-digit subversion numbers.
 
 1.6 2011/07/14
 

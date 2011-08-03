@@ -331,7 +331,7 @@ dearly love a few changes, that might help things:
 
 =head1 VERSION
 
-  Version: vVERSIONTAG (DATETAG)
+  Version: VERSIONTAG (DATETAG)
 
 =head1 AUTHOR
 

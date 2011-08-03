@@ -1,11 +1,26 @@
 #!/usr/bin/perl
+=head1 org_get.pl
+
+This example script shows how to successfully retrieve data on a specific
+organization from VCD via the API.
+
+=head2 Usage
+
+  ./org_get.pl --username USER --password PASS --orgname ORG --hostname HOST
+  
+Orgname is optional. It will default to "System" if not given. 
+
+Information on a random organization that the user has access to will be 
+returned.
+
+=cut
 
 use Data::Dumper;
 use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname);
 my $orgname = 'System';
