@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -I../lib
 =head1 login.pl
 
 This example script shows how to successfully log into VCD via the API.
@@ -16,20 +16,17 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.4 $' )[1];
+my $version = ( split ' ', '$Revision: 1.5 $' )[1];
 
-my ( $username, $password, $hostname);
-my $orgname = 'System';
+my ( $username, $password, $hostname, $orgname);
 
 my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
                        'orgname=s' => \$orgname, 'hostname=s' => \$hostname );
 
 die "Check the POD. This script needs command line parameters." unless
- $username and $password and $orgname and $hostname;
+ $username and $password and $hostname;
 
-my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname );
-
-$vcd->config( debug => 1 ); # Turn debug text on.
+my $vcd = new VMware::vCloud( $hostname, $username, $password, $orgname );
 
 my $login_info = $vcd->login; # Login
 
