@@ -145,7 +145,13 @@ sub catalog_get {
   }
 
   my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data;
+  } else {
+    $self->_fault($response);
+  }
 }
 
 sub org_get {
@@ -160,7 +166,13 @@ sub org_get {
   }
 
   my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data;
+  } else {
+    $self->_fault($response);
+  }
 }
 
 sub vdc_get {
@@ -175,7 +187,13 @@ sub vdc_get {
   }
 
   my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data;
+  } else {
+    $self->_fault($response);
+  }
 }
 
 sub vapp_get {
@@ -190,7 +208,13 @@ sub vapp_get {
   }
 
   my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+
+  if ( $response->status_line eq '200 OK' ) {
+    my $data = XMLin( $response->content );
+	return $data;
+  } else {
+    $self->_fault($response);
+  }
 }
 
 1;
