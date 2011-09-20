@@ -138,20 +138,14 @@ sub catalog_get {
   my $cat  = shift @_;
   my $req;
   
-  if ( $cat =~ /^\d+$/ ) {
+  if ( $cat =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'catalog/' . $cat );
   } else {
     $req = HTTP::Request->new( GET =>  $cat );
   }
 
   my $response = $self->{ua}->request($req);
-
-  if ( $response->status_line eq '200 OK' ) {
-    my $data = XMLin( $response->content );
-	return $data;
-  } else {
-    $self->_fault($response);
-  }
+  return $self->_xml_response($response);
 }
 
 sub org_get {
@@ -159,20 +153,14 @@ sub org_get {
   my $org  = shift @_;
   my $req;
   
-  if ( $org =~ /^\d+$/ ) {
+  if ( $org =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'org/' . $org );
   } else {
     $req = HTTP::Request->new( GET =>  $org );
   }
 
   my $response = $self->{ua}->request($req);
-
-  if ( $response->status_line eq '200 OK' ) {
-    my $data = XMLin( $response->content );
-	return $data;
-  } else {
-    $self->_fault($response);
-  }
+  return $self->_xml_response($response);
 }
 
 sub vdc_get {
@@ -180,20 +168,14 @@ sub vdc_get {
   my $vdc  = shift @_;
   my $req;
   
-  if ( $vdc =~ /^\d+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'org/' . $vdc );
+  if ( $vdc =~ /^[^\/]+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vdc/' . $vdc );
   } else {
     $req = HTTP::Request->new( GET =>  $vdc );
   }
 
   my $response = $self->{ua}->request($req);
-
-  if ( $response->status_line eq '200 OK' ) {
-    my $data = XMLin( $response->content );
-	return $data;
-  } else {
-    $self->_fault($response);
-  }
+  return $self->_xml_response($response);
 }
 
 sub vapp_get {
@@ -201,20 +183,14 @@ sub vapp_get {
   my $vapp = shift @_;
   my $req;
   
-  if ( $vapp =~ /^\d+$/ ) {
+  if ( $vapp =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vApp/vapp-' . $vapp );
   } else {
     $req = HTTP::Request->new( GET =>  $vapp );
   }
 
   my $response = $self->{ua}->request($req);
-
-  if ( $response->status_line eq '200 OK' ) {
-    my $data = XMLin( $response->content );
-	return $data;
-  } else {
-    $self->_fault($response);
-  }
+  return $self->_xml_response($response);
 }
 
 1;

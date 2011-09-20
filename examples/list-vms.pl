@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -I../lib
 =head1 list-vms.pl
 
 This example script uses the API to list all vApps and their VMs that the 
@@ -12,29 +12,30 @@ Orgname is optional. It will default to "System" if not given.
 
 =cut
 
-# $Revision: 1.1 $
+# $Revision: 1.2 $
 
 use Data::Dumper;
 use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
-my ( $username, $password, $hostname);
-my $orgname = 'System';
+my ( $username, $password, $hostname, $orgname );
 
 my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
                        'orgname=s' => \$orgname, 'hostname=s' => \$hostname );
 
 die "Check the POD. This script needs command line parameters." unless
- $username and $password and $orgname and $hostname;
+ $username and $password and $hostname;
 
-my $vcd = new VMware::vCloud (
-  $hostname, $username, $password, $orgname
-);
+my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname );
 
-$vcd->config( debug => 1 );
+my %vms = $vcd->list_vapps();
+
+print Dumper(\%vms);
+
+=head1
 
 my $login = $vcd->login;
 

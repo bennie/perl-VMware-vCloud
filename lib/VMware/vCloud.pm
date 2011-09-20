@@ -33,7 +33,64 @@ sub login {
 # Returns a hasref of the org
 
 sub get_org {
+  my $self = shift @_;
+  my $id = shift @_;
 
+  my $raw_org_data = $self->{api}->org_get($id);
+
+  my %org;
+  $org{description} = $raw_org_data->{Description}->[0];
+  $org{name}        = $raw_org_data->{name};
+
+  $raw_org_data->{href} =~ /([^\/]+)$/;
+  $org{id} = $1;
+
+  $org{contains} = {};
+  
+  for my $link ( @{$raw_org_data->{Link}} ) {
+    $link->{type} =~ /^application\/vnd.vmware.vcloud.(\w+)\+xml$/;
+    my $type = $1;
+    $link->{href} =~ /([^\/]+)$/;
+    my $id = $1;
+    
+    next if $type eq 'controlAccess';
+    
+    $org{contains}{$type}{$id} = $link->{name};
+  }
+
+  return %org;
+}
+
+# Returns a hasref of the vdc
+
+sub get_vdc {
+  my $self = shift @_;
+  my $id = shift @_;
+
+  my $raw_vdc_data = $self->{api}->vdc_get($id);
+
+  my %vdc;
+  $vdc{description} = $raw_vdc_data->{Description}->[0];
+  $vdc{name}        = $raw_vdc_data->{name};
+
+  $raw_vdc_data->{href} =~ /([^\/]+)$/;
+  $vdc{id} = $1;
+
+  $vdc{contains} = {};
+  
+  for my $link ( @{$raw_vdc_data->{Link}} ) {
+    $link->{type} =~ /^application\/vnd.vmware.vcloud.(\w+)\+xml$/;
+    my $type = $1;
+    $link->{href} =~ /([^\/]+)$/;
+    my $id = $1;
+    
+    next if $type eq 'controlAccess';
+    
+    $vdc{contains}{$type}{$id} = $link->{name};
+  }
+
+  return %$raw_vdc_data;
+}
 # Returns a hash of orgs the user can access
 
 sub list_orgs {
@@ -42,9 +99,9 @@ sub list_orgs {
   my %orgs;
   for my $orgname ( keys %{$self->{raw_login_data}->{Org}} ) {
     my $href = $self->{raw_login_data}->{Org}->{$orgname}->{href};
-    $href =~ /\/(.*?)$/;
+    $href =~ /([^\/]+)$/;
     my $orgid = $1;
-    $orgs{$orgname} = $orgid;
+    $orgs{$orgid} = $orgname;
   }
 
   return wantarray ? %orgs : \%orgs;  
@@ -53,9 +110,25 @@ sub list_orgs {
 # Returns a hash of all the vapps the user can access in the given org
 
 sub list_vapps {
+  my $self  = shift @_;
   my $orgid = shift @_;
   my %orgs = $self->list_orgs();
+
+  my %vdcs;
   
+  for my $orgid ( keys %orgs ) {
+    my %org = $self->get_org($orgid);
+    for my $vdcid ( keys %{$org{contains}{vdc}} ) {
+      $vdcs{$vdcid}++;
+    }
+  }
+
+  my %vapps;
+  
+  for my $vdcid ( keys %vdcs ) {
+    my %vdc = $self->get_vdc($vdcid);
+    return %vdc;
+  }
 }
 
 1;
