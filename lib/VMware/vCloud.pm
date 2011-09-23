@@ -88,6 +88,8 @@ sub get_vdc {
     
     $vdc{contains}{$type}{$id} = $link->{name};
   }
+  
+  
 
   return %$raw_vdc_data;
 }

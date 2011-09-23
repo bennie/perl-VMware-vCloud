@@ -20,7 +20,7 @@ sub new {
 
   $self->{orgname} = 'System' unless $self->{orgname};
 
-  $self->{debug}        = 0; # Defaults to no debug info
+  $self->{debug}        = 1; # Defaults to no debug info
   $self->{die_on_fault} = 1; # Defaults to dieing on an error
   $self->{ssl_timeout}  = 3600; # Defaults to 1h
 
@@ -76,10 +76,10 @@ sub _regenerate {
   my $self = shift @_;
   
   $self->{ua} = LWP::UserAgent->new;
-  $self->{ua}->cookie_jar({});
+  #$self->{ua}->cookie_jar({});
 
   $self->{api_version} = $self->api_version();
-  $self->_debug("API version: $self->{api_version}");
+  $self->_debug("API Version: $self->{api_version}");
   
   $self->{url_base} = URI->new('https://'. $self->{hostname} .'/api/v'. $self->{api_version} .'/');
   $self->_debug("API URL: $self->{url_base}");
@@ -102,6 +102,9 @@ sub _xml_response {
 sub api_version {
   my $self = shift @_;
   my $url = URI->new('https://'. $self->{hostname} .'/api/versions'); # Check API version first!
+
+  $self->_debug("Checking $url for supported API versions");
+
   my $req = HTTP::Request->new( GET =>  $url ); 
   my $response = $self->{ua}->request($req);
   if ( $response->status_line eq '200 OK' ) {
@@ -111,8 +114,8 @@ sub api_version {
     for my $verblock ( @{$info->{VersionInfo}} ) { 
       $version = $verblock->{Version} if $verblock->{Version} > $version;
     }
-    
-    return "1.0"; # Temporary overide of V1
+
+    return '1.0'; # Override: $version;
   } else {
     $self->_fault($response);
   }
@@ -123,9 +126,16 @@ sub login {
   my $req = HTTP::Request->new( POST =>  $self->{url_base} . 'login' ); 
 
   $req->authorization_basic( $self->{username} .'@'. $self->{orgname}, $self->{password} ); 
+  $self->_debug("Attempting to login: " . $self->{username} .'@'. $self->{orgname} .' '. $self->{password} );
+ 
+
   my $response = $self->{ua}->request($req);
 
+  my $token = $response->header('x-vcloud-authorization');
+  $self->{ua}->default_header('x-vcloud-authorization', $token);
+
   $self->_debug( "Authentication status: " . $response->status_line );
+  $self->_debug( "Authentication token: " . $token );
   $self->_debug( "Response WWW-Authenticate Header: " . $response->header("WWW-Authenticate") );
 
   return $self->_xml_response($response);
