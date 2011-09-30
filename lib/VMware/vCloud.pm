@@ -13,13 +13,14 @@ sub new {
   our $user = shift @_;
   our $pass = shift @_;
   our $org  = shift @_;
+  our $conf = shift @_;
 
   $org = 'System' unless $org; # Default to "System" org
 
   my $self  = {};
   bless($self);
 
-  $self->{api} = new VMware::API::vCloud (our $host, our $user, our $pass, our $org);
+  $self->{api} = new VMware::API::vCloud (our $host, our $user, our $pass, our $org, our $conf);
   $self->{raw_login_data} = $self->{api}->login();
 
   return $self;
@@ -129,8 +130,18 @@ sub list_vapps {
   
   for my $vdcid ( keys %vdcs ) {
     my %vdc = $self->get_vdc($vdcid);
-    return %vdc;
+    for my $entity ( @{$vdc{ResourceEntities}} ) {
+      for my $name ( keys %{$entity->{ResourceEntity}} ) {
+        next unless $entity->{ResourceEntity}->{$name}->{type} eq 'application/vnd.vmware.vcloud.vApp+xml';
+        my $href = $entity->{ResourceEntity}->{$name}->{href};
+        $href =~ /([^\/]+)$/;
+        my $id = $1;
+        $vapps{$id} = $name;
+      }
+    }
   }
+
+  return %vapps;
 }
 
 1;

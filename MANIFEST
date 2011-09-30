@@ -8,5 +8,6 @@ examples/login.pl
 examples/list-vms.pl
 examples/org_get.pl
 lib/VMware/vCloud.pm
+lib/VMware/API/vCloud.pm
 t/01-load.t
 t/02-header.t

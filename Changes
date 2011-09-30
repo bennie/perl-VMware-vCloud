@@ -1,6 +1,28 @@
 Revision history for VMware::vCloud
 
-1.600.08 DATETAG
+2.01     DATETAG
+
+  This is a major change in philosophy. Previously this module emulated the API
+  in the name of method and returned data structures.
+
+  This does not match most conceptual and desired usage for automation. People
+  do not "think" in a collection of REST API calls. They think in actions like
+  "deploy a VM."
+
+  Consequently I have moved the direct API implementation to 
+  VMware::API::vCloud. It offers an unadulterated pure-perl based view of the
+  API and its transactions.
+
+  In VMware::vCloud, I am going to try and present a more human friendly view.
+
+  Added:
+      lib/VMware/API/vCloud.pm - Raw API calls and returns.
+
+  Fixed:
+      Session ID is now handled via HTTP header, not cookies. This matches the published API docs.
+
+
+1.600.08 2011/08/02
 
   Added:
 	examples/list-vms.pl - List all vApps and their VMs

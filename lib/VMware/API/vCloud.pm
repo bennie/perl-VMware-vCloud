@@ -18,11 +18,14 @@ sub new {
   $self->{password} = shift @_;
   $self->{orgname}  = shift @_;
 
-  $self->{orgname} = 'System' unless $self->{orgname};
-
-  $self->{debug}        = 1; # Defaults to no debug info
+  $self->{debug}        = 0; # Defaults to no debug info
   $self->{die_on_fault} = 1; # Defaults to dieing on an error
   $self->{ssl_timeout}  = 3600; # Defaults to 1h
+
+  $self->{orgname} = 'System' unless $self->{orgname};
+
+  $self->{conf} = shift @_ if defined $_[0] and ref $_[0];
+  $self->{debug} = $self->{conf}->{debug} if defined $self->{conf}->{debug};
 
   bless($self,$class);
 
@@ -136,7 +139,6 @@ sub login {
 
   $self->_debug( "Authentication status: " . $response->status_line );
   $self->_debug( "Authentication token: " . $token );
-  $self->_debug( "Response WWW-Authenticate Header: " . $response->header("WWW-Authenticate") );
 
   return $self->_xml_response($response);
 }
@@ -147,6 +149,8 @@ sub catalog_get {
   my $self = shift @_;
   my $cat  = shift @_;
   my $req;
+
+  $self->_debug("API: catalog_get($cat)\n") if $self->{debug};
   
   if ( $cat =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'catalog/' . $cat );
@@ -162,6 +166,8 @@ sub org_get {
   my $self = shift @_;
   my $org  = shift @_;
   my $req;
+
+  $self->_debug("API: org_get($org)\n") if $self->{debug};
   
   if ( $org =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'org/' . $org );
@@ -178,6 +184,8 @@ sub vdc_get {
   my $vdc  = shift @_;
   my $req;
   
+  $self->_debug("API: vdc_get($vdc)\n") if $self->{debug};
+
   if ( $vdc =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vdc/' . $vdc );
   } else {
@@ -193,6 +201,8 @@ sub vapp_get {
   my $vapp = shift @_;
   my $req;
   
+  $self->_debug("API: vapp_get($vapp)\n") if $self->{debug};
+
   if ( $vapp =~ /^[^\/]+$/ ) {
     $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vApp/vapp-' . $vapp );
   } else {
