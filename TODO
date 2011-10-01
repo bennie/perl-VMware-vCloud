@@ -3,6 +3,8 @@ TODO!
 These items are goals and plans for the future for this module. They recognize
 deficiencies and inefficiencies in the current module:
 
+- Move aqway from hard-coded v1.0 of API
+
 - Support all methods. :)
 
 - Unified LWP handling to be able to dump transactions at debug and error levels

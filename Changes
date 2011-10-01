@@ -1,6 +1,15 @@
 Revision history for VMware::vCloud
 
-2.01     DATETAG
+VERSIONTAG DATETAG
+
+  Added:
+    Caching of data with Cache::Bounded.
+  
+  Improved:
+    examples/list-vms.pl - Removed commented-out code from 1.x version.
+
+
+2.01 2011/09/30
 
   This is a major change in philosophy. Previously this module emulated the API
   in the name of method and returned data structures.
@@ -16,10 +25,10 @@ Revision history for VMware::vCloud
   In VMware::vCloud, I am going to try and present a more human friendly view.
 
   Added:
-      lib/VMware/API/vCloud.pm - Raw API calls and returns.
+    lib/VMware/API/vCloud.pm - Raw API calls and returns.
 
   Fixed:
-      Session ID is now handled via HTTP header, not cookies. This matches the published API docs.
+    Session ID is now handled via HTTP header, not cookies. This matches the published API docs.
 
 
 1.600.08 2011/08/02

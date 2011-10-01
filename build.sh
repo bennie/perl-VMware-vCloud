@@ -4,12 +4,14 @@ set -e
 MODULE='lib/VMware/vCloud.pm'
 VERSION=`cvs status $MODULE | grep Working | awk '{ print $3 }' | tr '.' ' ' | awk '{ printf "v%d.%02d", $1, $2 }'`
 DATE=`date '+%Y/%m/%d'`
-TARDIR="VMware-API-LabManager-$VERSION";
+YEAR=`date '+%Y'`
+TARDIR="VMware-vCloud-$VERSION";
 
 echo
 echo "Module  : $MODULE"
 echo "Version : $VERSION"
 echo "Date    : $DATE"
+echo "Year    : $YEAR"
 echo "Tar Dir : $TARDIR"
 echo
 
@@ -26,11 +28,15 @@ rsync -av --files-from=MANIFEST ./ "build/$TARDIR/"
 echo
 
 echo "Updating date tags."
-find build -type f | xargs perl -p -i -e "s|DATETAG|$DATE|g" 
+find build -type f | xargs perl -p -i -e "s|DATETAG|$DATE|g"
 echo
 
 echo "Updating version tags."
-find build -type f | xargs perl -p -i -e "s|VERSIONTAG|$VERSION|g" 
+find build -type f | xargs perl -p -i -e "s|VERSIONTAG|$VERSION|g"
+echo
+
+echo "Updating date tags."
+find build -type f | xargs perl -p -i -e "s|YEARTAG|$YEAR|g"
 echo
 
 echo "Building the tar file."

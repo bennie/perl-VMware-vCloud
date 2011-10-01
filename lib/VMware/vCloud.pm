@@ -1,5 +1,6 @@
 package VMware::vCloud;
 
+use Cache::Bounded;
 use VMware::API::vCloud;
 use strict;
 
@@ -20,6 +21,8 @@ sub new {
   my $self  = {};
   bless($self);
 
+  our $cache = new Cache::Bounded;
+
   $self->{api} = new VMware::API::vCloud (our $host, our $user, our $pass, our $org, our $conf);
   $self->{raw_login_data} = $self->{api}->login();
 
@@ -35,8 +38,11 @@ sub login {
 
 sub get_org {
   my $self = shift @_;
-  my $id = shift @_;
+  my $id   = shift @_;
 
+  my $org = our $cache->get('get_org:'.$id);
+  return %$org if defined $org;
+  
   my $raw_org_data = $self->{api}->org_get($id);
 
   my %org;
@@ -59,6 +65,7 @@ sub get_org {
     $org{contains}{$type}{$id} = $link->{name};
   }
 
+  $cache->set('get_org:'.$id,\%org);
   return %org;
 }
 
@@ -67,6 +74,9 @@ sub get_org {
 sub get_vdc {
   my $self = shift @_;
   my $id = shift @_;
+
+  my $vdc = our $cache->get('get_vdc:'.$id);
+  return %$vdc if defined $vdc;
 
   my $raw_vdc_data = $self->{api}->vdc_get($id);
 
@@ -90,10 +100,10 @@ sub get_vdc {
     $vdc{contains}{$type}{$id} = $link->{name};
   }
   
-  
-
+  $cache->set('get_vdc:'.$id,$raw_vdc_data);
   return %$raw_vdc_data;
 }
+
 # Returns a hash of orgs the user can access
 
 sub list_orgs {
@@ -115,6 +125,10 @@ sub list_orgs {
 sub list_vapps {
   my $self  = shift @_;
   my $orgid = shift @_;
+
+  my $vapps = our $cache->get('list_vapps:'.$orgid);
+  return %$vapps if defined $vapps;
+
   my %orgs = $self->list_orgs();
 
   my %vdcs;
@@ -141,6 +155,7 @@ sub list_vapps {
     }
   }
 
+  $cache->set('list_vapps:'.$orgid,\%vapps);
   return %vapps;
 }
 
