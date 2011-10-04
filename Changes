@@ -4,6 +4,7 @@ VERSIONTAG DATETAG
 
   Added:
     Caching of data with Cache::Bounded.
+    list_templates() & examples/list-vms.pl - List templates
   
   Improved:
     examples/list-vms.pl - Removed commented-out code from 1.x version.

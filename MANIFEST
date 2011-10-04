@@ -5,7 +5,7 @@ META.yml
 README
 TODO
 examples/login.pl
-examples/list-vms.pl
+examples/list-vapps.pl
 examples/org_get.pl
 lib/VMware/vCloud.pm
 lib/VMware/API/vCloud.pm

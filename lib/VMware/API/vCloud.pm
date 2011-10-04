@@ -219,38 +219,32 @@ __END__
 
 =head1 NAME
 
-VMware::vCloud - The VMware vCloud API
+VMware::API::vCloud - The VMware vCloud API
 
 =head1 SYNOPSIS
 
-This module has been developed against VMware vCenter director.
 
-  my $vcd = new VMware::vCloud (
+  my $api = new VMware::API::vCloud (
     $hostname, $username, $password, $orgname
   );
   
-  my $login = $vcd->login;
+  my $raw_login_data = $vcd->login;
 
 =head1 DESCRIPTION
 
-This module provides a Perl interface to VMware's vCloud REST interface.
+This module provides a Perl interface to VMware's vCloud REST API.
+
+In general, for most API calls, they are in the structure of the conecptual
+name followed by an underscore and then the REST action. (IE: org_get() for
+retrieveing an org, and org_post() for creating one.)
 
 =head1 RETURNED VALUES
 
-Many of the methods return hash references or arrays of hash references that
-contain information about a specific "object" or concept on the vCloud Director
-server. This is a rough analog to the Managed Object Reference structure of
-the VIPERL SDK without the generic interface for retireval.
+Responses received from vCloud are in XML. They are translated via XML::Simple
+with ForceArray set for consistency in nesting. This is the object returned.
 
-=head1 EXAMPLE SCRIPTS
-
-Included in the distribution of this module are several example scripts. Hopefully
-they provide an illustrative example of the vCloud API. All scripts have
-their own POD and accept command line parameters in a similar way to the VIPERL
-SDK utilities and vghetto scripts.
-
-    login.pl - An example script that demonstrates logging in to the 
-server.
+Aside from the translation of XML into a perl data structure, no further 
+alteration is performed on the data.
 
 =head1 PERL MODULE METHODS
 
@@ -299,7 +293,7 @@ This call queries the server for the current version of the API supported. It is
 
 =head2 login
 
-This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access..
+This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access.
 
 =head2 catalog_get($catid or $caturl)
 
