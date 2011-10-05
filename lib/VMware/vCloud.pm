@@ -2,6 +2,7 @@ package VMware::vCloud;
 
 use Cache::Bounded;
 use VMware::API::vCloud;
+use VMware::vCloud::vApp;
 use strict;
 
 our $VERSION = 'VERSIONTAG';
@@ -69,7 +70,20 @@ sub get_org {
   return %org;
 }
 
-# Returns a hasref of the vdc
+sub get_vapp {
+  my $self = shift @_;
+  my $href = shift @_;
+
+  my $vapp = our $cache->get('get_vapp:'.$href);
+  return $vapp if defined $vapp;
+
+  my $data = $self->{api}->vapp_get($href);
+
+  $vapp = new VMware::vCloud::vApp ( $self->{api}, $href, $data );
+  
+  $cache->set('get_vapp:'.$href,$vapp);
+  return $vapp;
+}
 
 sub get_vdc {
   my $self = shift @_;
@@ -103,8 +117,6 @@ sub get_vdc {
   $cache->set('get_vdc:'.$id,$raw_vdc_data);
   return %$raw_vdc_data;
 }
-
-# Returns a hash of orgs the user can access
 
 sub list_orgs {
   my $self = shift @_;
@@ -146,9 +158,7 @@ sub list_templates {
       for my $name ( keys %{$entity->{ResourceEntity}} ) {
         next unless $entity->{ResourceEntity}->{$name}->{type} eq 'application/vnd.vmware.vcloud.vAppTemplate+xml';
         my $href = $entity->{ResourceEntity}->{$name}->{href};
-        $href =~ /([^\/]+)$/;
-        my $id = $1;
-        $templates{$id} = $name;
+        $templates{$href} = $name;
       }
     }
   }
@@ -183,15 +193,17 @@ sub list_vapps {
       for my $name ( keys %{$entity->{ResourceEntity}} ) {
         next unless $entity->{ResourceEntity}->{$name}->{type} eq 'application/vnd.vmware.vcloud.vApp+xml';
         my $href = $entity->{ResourceEntity}->{$name}->{href};
-        $href =~ /([^\/]+)$/;
-        my $id = $1;
-        $vapps{$id} = $name;
+        $vapps{$href} = $name;
       }
     }
   }
 
   $cache->set('list_vapps:'.$orgid,\%vapps);
   return %vapps;
+}
+
+sub post {
+
 }
 
 1;

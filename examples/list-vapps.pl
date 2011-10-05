@@ -17,7 +17,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -32,3 +32,8 @@ my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debu
 my %vms = $vcd->list_vapps();
 
 print "\n", Dumper(\%vms);
+
+for my $href ( keys %vms ) {
+  my $vapp = $vcd->get_vapp($href);
+  print "\n", ('='x80), "\n", Dumper($vapp->available_actions());
+}
