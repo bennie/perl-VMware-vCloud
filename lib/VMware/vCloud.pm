@@ -7,7 +7,51 @@ use strict;
 
 our $VERSION = 'VERSIONTAG';
 
-### External methods
+=head1 NAME
+
+VMware::vCloud - VMware vCloud Director
+
+=head1 SYNOPSIS
+
+  my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
+  
+  my %vapps = $vcd->list_vapps();
+
+=head1 DESCRIPTION
+
+This module provides a Perl interface to VMware's vCloud Director.
+
+=head1 EXAMPLE SCRIPTS
+
+Included in the distribution of this module are several example scripts. 
+Hopefully they provide an illustrative example of the use of vCloud Director. 
+All scripts have their own POD and accept command line parameters in a similar 
+way to the VIPERL SDK utilities and vghetto scripts.
+
+	login.pl - An example script that demonstrates logging in to the server.
+	org_get.pl - Selects a random organization and prints a Data::Dumper dump of it's information.
+	list-vapps.pl - Prints a list of all VMs the user has access to.
+
+=head1 METHODS
+
+=head2 new($host,$user,$pass,$org,$conf)
+
+This method instances the VMware::vCloud object and verifies the user can log
+onto the server.
+
+$host, $user, and $pass are required. They should contain the login information
+for the vCloud server.
+
+$org and $conf are optional. 
+
+$org is the vCloud Organization to connect to. If $org is not given, the 
+default of 'System' is used.
+
+$conf is an optional hasref containing tuneable parameters:
+
+ * debug - set to a true value to turn on STDERR debugging statements.
+
+=cut 
 
 sub new {
   my $class = shift @_;
@@ -30,12 +74,13 @@ sub new {
   return $self;
 }
 
-sub login {
-  my $self = shift @_;
-  return $self->list_orgs(@_);
-}
+### Standard methods
 
-# Returns a hasref of the org
+=head2 get_org($orgid)
+
+Given an organization id, it returns a hash of data for that organization.
+
+=cut
 
 sub get_org {
   my $self = shift @_;
@@ -70,6 +115,15 @@ sub get_org {
   return %org;
 }
 
+=head2 get_vapp($vappid)
+
+Given an vApp id, it returns a vApp object for that vApp.
+
+See the documentation on VMware::vCloud::vApp for full details on this object
+type.
+
+=cut
+
 sub get_vapp {
   my $self = shift @_;
   my $href = shift @_;
@@ -77,13 +131,17 @@ sub get_vapp {
   my $vapp = our $cache->get('get_vapp:'.$href);
   return $vapp if defined $vapp;
 
-  my $data = $self->{api}->vapp_get($href);
-
-  $vapp = new VMware::vCloud::vApp ( $self->{api}, $href, $data );
+  $vapp = new VMware::vCloud::vApp ( $self->{api}, $href );
   
   $cache->set('get_vapp:'.$href,$vapp);
   return $vapp;
 }
+
+=head2 get_vdc($vdcid)
+
+Given an vDC id, it returns a hash of data for that vDC.
+
+=cut
 
 sub get_vdc {
   my $self = shift @_;
@@ -118,6 +176,12 @@ sub get_vdc {
   return %$raw_vdc_data;
 }
 
+=head2 list_orgs()
+
+This method returns a hash or hashref of Organization names and IDs.
+
+=cut
+
 sub list_orgs {
   my $self = shift @_;
 
@@ -132,11 +196,17 @@ sub list_orgs {
   return wantarray ? %orgs : \%orgs;  
 }
 
+=head2 list_templates()
+
+This method returns a hash or hashref of Template names and IDs the user has
+access too.
+
+=cut
+
 sub list_templates {
   my $self  = shift @_;
-  my $orgid = shift @_;
-
-  my $templates = our $cache->get('list_templates:'.$orgid);
+  
+  my $templates = our $cache->get('list_templates:');
   return %$templates if defined $templates;
 
   my %orgs = $self->list_orgs();
@@ -163,15 +233,21 @@ sub list_templates {
     }
   }
 
-  $cache->set('list_templates:'.$orgid,\%templates);
+  $cache->set('list_templates:',\%templates);
   return %templates;
 }
 
+=head2 list_vapps()
+
+This method returns a hash or hashref of Template names and IDs the user has
+access too.
+
+=cut
+
 sub list_vapps {
   my $self  = shift @_;
-  my $orgid = shift @_;
 
-  my $vapps = our $cache->get('list_vapps:'.$orgid);
+  my $vapps = our $cache->get('list_vapps:');
   return %$vapps if defined $vapps;
 
   my %orgs = $self->list_orgs();
@@ -198,42 +274,30 @@ sub list_vapps {
     }
   }
 
-  $cache->set('list_vapps:'.$orgid,\%vapps);
+  $cache->set('list_vapps:',\%vapps);
   return %vapps;
 }
 
-sub post {
+=head2 login()
 
+This method is deprecated and will be removed in later releases.
+
+This method roughly emulates the default login action of the API: It returns
+information on which organizations are accessible to the user.
+
+It is a synonym for list_orgs() and all details on return values should be
+take from that method's documentation.
+
+=cut
+
+sub login {
+  my $self = shift @_;
+  return $self->list_orgs(@_);
 }
 
 1;
 
 __END__
-
-=head1 NAME
-
-VMware::vCloud - VMware vCloud Director
-
-=head1 SYNOPSIS
-
-  my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
-  
-  my %vapps = $vcd->list_vapps();
-
-=head1 DESCRIPTION
-
-This module provides a Perl interface to VMware's vCloud Director.
-
-=head1 EXAMPLE SCRIPTS
-
-Included in the distribution of this module are several example scripts. 
-Hopefully they provide an illustrative example of the use of vCloud Director. 
-All scripts have their own POD and accept command line parameters in a similar 
-way to the VIPERL SDK utilities and vghetto scripts.
-
-	login.pl - An example script that demonstrates logging in to the server.
-	org_get.pl - Selects a random organization and prints a Data::Dumper dump of it's information.
-	list-vapps.pl - Prints a list of all VMs the user has access to.
 
 =head1 VERSION
 

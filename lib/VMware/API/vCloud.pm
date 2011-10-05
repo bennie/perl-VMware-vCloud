@@ -7,7 +7,59 @@ use strict;
 
 our $VERSION = 'VERSIONTAG';
 
-### External methods
+=head1 NAME
+
+VMware::API::vCloud - The VMware vCloud API
+
+=head1 SYNOPSIS
+
+
+  my $api = new VMware::API::vCloud (
+    $hostname, $username, $password, $orgname
+  );
+  
+  my $raw_login_data = $vcd->login;
+
+=head1 DESCRIPTION
+
+This module provides a Perl interface to VMware's vCloud REST API.
+
+In general, for most API calls, they are in the structure of the conecptual
+name followed by an underscore and then the REST action. (IE: org_get() for
+retrieveing an org, and org_post() for creating one.)
+
+=head1 RETURNED VALUES
+
+Responses received from vCloud are in XML. They are translated via XML::Simple
+with ForceArray set for consistency in nesting. This is the object returned.
+
+Aside from the translation of XML into a perl data structure, no further 
+alteration is performed on the data.
+
+=head1 PERL MODULE METHODS
+
+These methods are not API calls. They represent the methods that create
+this module as a "wrapper" for the vCloud API.
+
+=head2 new
+
+This method creates the vCloud object.
+
+U<Arguments>
+
+=over
+
+=item * hostname
+
+=item * username
+
+=item * password
+
+=item * organization
+
+=back
+
+=cut
 
 sub new {
   my $class = shift @_;
@@ -34,6 +86,24 @@ sub new {
   $self->_debug("Loaded VMware::vCloud v" . our $VERSION . "\n") if $self->{debug};
   return $self;
 }
+
+=head2 config
+
+  $vcd->config( debug => 1 );
+
+=over 4
+
+=item debug - 1 to turn on debugging. 0 for none. Defaults to 0.
+
+=item die_on_fault - 1 to cause the program to die verbosely on a soap fault. 0 for the fault object to be returned on the call and for die() to not be called. Defaults to 1. If you choose not to die_on_fault (for example, if you are writing a CGI) you will want to check all return objects to see if they are fault objects or not.
+
+=item ssl_timeout - seconds to wait for timeout. Defaults to 3600. (1hr) This is how long a transaction response will be waited for once submitted. For slow storage systems and full clones, you may want to up this higher. If you find yourself setting this to more than 6 hours, your vCloud setup is probably not in the best shape.
+
+=item hostname, orgname, username and password - All of these values can be changed from the original settings on new(). This is handing for performing multiple transactions across organizations.
+
+=back
+
+=cut
 
 sub config {
   my $self = shift @_;
@@ -102,6 +172,14 @@ sub _xml_response {
 
 ### Public methods
 
+=head1 PUBLIC API METHODS
+
+=head2 api_version
+
+This call queries the server for the current version of the API supported. It is implicitly called when library is instanced.
+
+=cut
+
 sub api_version {
   my $self = shift @_;
   my $url = URI->new('https://'. $self->{hostname} .'/api/versions'); # Check API version first!
@@ -124,6 +202,12 @@ sub api_version {
   }
 }
 
+=head2 login
+
+This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access.
+
+=cut
+
 sub login {
   my $self = shift @_;
   my $req = HTTP::Request->new( POST =>  $self->{url_base} . 'login' ); 
@@ -145,6 +229,14 @@ sub login {
 
 ### API methods
 
+=head2 catalog_get($catid or $caturl)
+
+As a parameter, this method thakes the raw numeric id of the catalog or the full URL detailed for the catalog from the login catalog.
+
+It returns the requested catalog.
+
+=cut
+
 sub catalog_get {
   my $self = shift @_;
   my $cat  = shift @_;
@@ -161,6 +253,14 @@ sub catalog_get {
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
+
+=head2 org_get($orgid or $orgurl)
+
+As a parameter, this method thakes the raw numeric id of the organization or the full URL detailed for the organization from the login catalog.
+
+It returns the requested organization.
+
+=cut
 
 sub org_get {
   my $self = shift @_;
@@ -179,6 +279,38 @@ sub org_get {
   return $self->_xml_response($response);
 }
 
+=head2 post($url)
+
+Performs the requested URL post to the server.
+
+It returns an array or arraref with three items: returned message, returned
+numeric code, and a hashref of the full XML data returned.
+
+=cut
+
+sub post {
+  my $self = shift @_;
+  my $href = shift @_;
+
+  $self->_debug("API: post($href)\n") if $self->{debug};
+  my $req = HTTP::Request->new( POST => $href );
+
+  my $response = $self->{ua}->request($req);
+  my $data = $self->_xml_response($response);
+
+  my @ret = ( $data->{_msg}, $data->{_rc}, $data );
+
+  return wantarray ? @ret : \@ret;
+}
+
+=head2 vdc_get($vdcid or $vdcurl)
+
+As a parameter, this method thakes the raw numeric id of the virtual data center or the full URL detailed a catalog.
+
+It returns the requested VDC.
+
+=cut
+
 sub vdc_get {
   my $self = shift @_;
   my $vdc  = shift @_;
@@ -195,6 +327,14 @@ sub vdc_get {
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
+
+=head2 vapp_get($vappid or $vappurl)
+
+As a parameter, this method thakes the raw numeric id of the vApp or the full URL.
+
+It returns the requested vApp.
+
+=cut
 
 sub vapp_get {
   my $self = shift @_;
@@ -216,108 +356,6 @@ sub vapp_get {
 1;
 
 __END__
-
-=head1 NAME
-
-VMware::API::vCloud - The VMware vCloud API
-
-=head1 SYNOPSIS
-
-
-  my $api = new VMware::API::vCloud (
-    $hostname, $username, $password, $orgname
-  );
-  
-  my $raw_login_data = $vcd->login;
-
-=head1 DESCRIPTION
-
-This module provides a Perl interface to VMware's vCloud REST API.
-
-In general, for most API calls, they are in the structure of the conecptual
-name followed by an underscore and then the REST action. (IE: org_get() for
-retrieveing an org, and org_post() for creating one.)
-
-=head1 RETURNED VALUES
-
-Responses received from vCloud are in XML. They are translated via XML::Simple
-with ForceArray set for consistency in nesting. This is the object returned.
-
-Aside from the translation of XML into a perl data structure, no further 
-alteration is performed on the data.
-
-=head1 PERL MODULE METHODS
-
-These methods are not API calls. They represent the methods that create
-this module as a "wrapper" for the vCloud API.
-
-=head2 new
-
-This method creates the vCloud object.
-
-U<Arguments>
-
-=over
-
-=item * hostname
-
-=item * username
-
-=item * password
-
-=item * organization
-
-=back
-
-=head2 config
-
-  $vcd->config( debug => 1 );
-
-=over 4
-
-=item debug - 1 to turn on debugging. 0 for none. Defaults to 0.
-
-=item die_on_fault - 1 to cause the program to die verbosely on a soap fault. 0 for the fault object to be returned on the call and for die() to not be called. Defaults to 1. If you choose not to die_on_fault (for example, if you are writing a CGI) you will want to check all return objects to see if they are fault objects or not.
-
-=item ssl_timeout - seconds to wait for timeout. Defaults to 3600. (1hr) This is how long a transaction response will be waited for once submitted. For slow storage systems and full clones, you may want to up this higher. If you find yourself setting this to more than 6 hours, your vCloud setup is probably not in the best shape.
-
-=item hostname, orgname, username and password - All of these values can be changed from the original settings on new(). This is handing for performing multiple transactions across organizations.
-
-=back
-
-=head1 PUBLIC API METHODS
-
-=head2 api_version
-
-This call queries the server for the current version of the API supported. It is implicitly called when library is instanced.
-
-=head2 login
-
-This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access.
-
-=head2 catalog_get($catid or $caturl)
-
-As a parameter, this method thakes the raw numeric id of the catalog or the full URL detailed for the catalog from the login catalog.
-
-It returns the requested catalog.
-
-=head2 org_get($orgid or $orgurl)
-
-As a parameter, this method thakes the raw numeric id of the organization or the full URL detailed for the organization from the login catalog.
-
-It returns the requested organization.
-
-=head2 vdc_get($vdcid or $vdcurl)
-
-As a parameter, this method thakes the raw numeric id of the virtual data center or the full URL detailed a catalog.
-
-It returns the requested VDC.
-
-=head2 vapp_get($vappid or $vappurl)
-
-As a parameter, this method thakes the raw numeric id of the vApp or the full URL.
-
-It returns the requested vApp.
 
 =head1 WISH LIST
 

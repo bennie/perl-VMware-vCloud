@@ -3,6 +3,12 @@ Revision history for VMware::vCloud
 VERSIONTAG DATETAG
 
   Added:
+    VMware::vCloud::vApp - An object representation of a vApp
+    examples/poweron-vapp.pl - Powering a vApp on.
+
+2.04 2011/10/03
+
+  Added:
     Caching of data with Cache::Bounded.
     list_templates() & examples/list-vms.pl - List templates
   
