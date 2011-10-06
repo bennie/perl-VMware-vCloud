@@ -142,7 +142,23 @@ sub _debug {
 
 sub _fault {
   my $self = shift @_;
-  die Dumper(@_);
+  my @error = @_;
+  
+  my $message = "\nERROR: ";
+  
+  if ( length(@error) and ref $error[0] eq 'HTTP::Response' ) {
+    $message .= $error[0]->status_line;
+    die $message;
+  }
+  
+  while ( my $error = shift @error ) {
+    if ( ref $error eq 'SCALAR' ) {
+      chomp $error;
+      $message .= $error;
+    } else {
+      $message .= Dumper($error);
+    }
+  }
 }
 
 sub _regenerate {
@@ -162,7 +178,7 @@ sub _xml_response {
   my $self     = shift @_;
   my $response = shift @_;
   
-  if ( $response->status_line eq '200 OK' ) {
+  if ( $response->is_success ) {
     my $data = XMLin( $response->content, ForceArray => 1 );
     return $data;
   } else {
@@ -298,7 +314,7 @@ sub post {
   my $response = $self->{ua}->request($req);
   my $data = $self->_xml_response($response);
 
-  my @ret = ( $data->{_msg}, $data->{_rc}, $data );
+  my @ret = ( $response->message, $response->code, $data );
 
   return wantarray ? @ret : \@ret;
 }

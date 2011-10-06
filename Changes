@@ -1,10 +1,23 @@
 Revision history for VMware::vCloud
 
+NB: Skipped version numbers were never released.
+
 VERSIONTAG DATETAG
+
+  Improved:
+    VMware::API::vCloud: Error handling now recognizes an HTTP::Response object
+
+  Fixed:
+    Included VMware::vCloud::vApp in MANIFEST
+
+2.06 2011/10/05
 
   Added:
     VMware::vCloud::vApp - An object representation of a vApp
     examples/poweron-vapp.pl - Powering a vApp on.
+
+  Improved:
+    Documentation now matches all methods.
 
 2.04 2011/10/03
 

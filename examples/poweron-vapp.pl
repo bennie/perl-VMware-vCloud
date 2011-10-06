@@ -17,7 +17,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -28,6 +28,8 @@ die "Check the POD. This script needs command line parameters." unless
  $username and $password and $hostname;
 
 my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
+
+# Grab a list of vapps and let the user pick one to power on
 
 my %vapps = $vcd->list_vapps();
 my @vapps = sort { lc($vapps{$a}) cmp lc($vapps{$b}) } keys %vapps; # Put the names in alpha order
@@ -52,7 +54,15 @@ my $vappid = $vapps[$id];
 print "\nGoing to try powering $vapps{$vappid} ON.\n";
 print "\n$line\n";
 
+# get the selected vApp and power it on.
+
 my $vapp = $vcd->get_vapp($vappid);
 my $ret = $vapp->power_on();
 
-print Dumper($ret);
+# look at the return code from the power-on
+
+if ( ref $ret eq 'ARRAY' ) {
+  print $ret->[0] .': '. $ret->[1];
+} else {
+  print Dumper($ret);
+}

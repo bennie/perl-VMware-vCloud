@@ -7,8 +7,8 @@ TODO
 examples/login.pl
 examples/list-vapps.pl
 examples/org_get.pl
-lib/VMware/vCloud.pm
 lib/VMware/API/vCloud.pm
-lib/VMware/API/vCloud/vApp.pm
+lib/VMware/vCloud.pm
+lib/VMware/vCloud/vApp.pm
 t/01-load.t
 t/02-header.t

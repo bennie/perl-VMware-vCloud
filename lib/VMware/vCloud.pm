@@ -13,9 +13,13 @@ VMware::vCloud - VMware vCloud Director
 
 =head1 SYNOPSIS
 
-  my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
-  
+  my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );  
   my %vapps = $vcd->list_vapps();
+
+  my $vappid = $vapps{'My Personal vApp'};
+
+  my $vapp = $vcd->get_vapp($vappid);
+  my $ret = $vapp->power_on();
 
 =head1 DESCRIPTION
 
