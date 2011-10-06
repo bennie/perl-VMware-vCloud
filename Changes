@@ -6,6 +6,7 @@ VERSIONTAG DATETAG
 
   Improved:
     VMware::API::vCloud: Error handling now recognizes an HTTP::Response object
+    Synopsis documentation on VMware::vCloud
 
   Fixed:
     Included VMware::vCloud::vApp in MANIFEST
