@@ -1,12 +1,12 @@
 #!/usr/bin/perl -I../lib
 =head1 poweron-vapp.pl
 
-This example script uses the API to list all vApps that the user has ability to 
-access.
+This example script uses the API to list available vApps and then the power-on
+the vApp selected by the user.
 
 =head2 Usage
 
-  ./list-vapps.pl --username USER --password PASS --orgname ORG --hostname HOST
+  ./poweron-vapp.pl --username USER --password PASS --orgname ORG --hostname HOST
   
 Orgname is optional. It will default to "System" if not given. 
 
@@ -17,7 +17,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.2 $' )[1];
+my $version = ( split ' ', '$Revision: 1.3 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -61,8 +61,10 @@ my $ret = $vapp->power_on();
 
 # look at the return code from the power-on
 
+print "\n";
 if ( ref $ret eq 'ARRAY' ) {
   print $ret->[0] .': '. $ret->[1];
 } else {
   print Dumper($ret);
 }
+print "\n\n";

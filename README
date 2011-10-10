@@ -29,7 +29,7 @@ USAGE:
 AUTHORSHIP:
 ================================================================================
 
-    VMware::vCloud vVERSIONTAG (DATETAG)
+    VMware::vCloud VERSIONTAG (DATETAG)
 
     (c) 2009-YEARTAG, Phillip Pollard <bennie@cpan.org>
     Released under the Perl Artistic License

@@ -5,6 +5,11 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Improved:
+    examples/poweron-vapp.pl - corrected documentation (POD)
+
+2.07 2011/10/06
+
+  Improved:
     VMware::API::vCloud: Error handling now recognizes an HTTP::Response object
     Synopsis documentation on VMware::vCloud
 

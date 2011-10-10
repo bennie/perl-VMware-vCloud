@@ -313,7 +313,11 @@ __END__
 
 =head1 CONTRIBUTIONS
 
-  stu41j - http://communities.vmware.com/people/stu42j
+  Stuart Johnston, <sjohnston@cpan.org>
+
+	Significant helpful contrbutions have been made by Mr. Johnston, including
+	the proper handling of the authentication header, the layout of modules,
+	and proper support for XML encoding.
 
 =head1 DEPENDENCIES
 
