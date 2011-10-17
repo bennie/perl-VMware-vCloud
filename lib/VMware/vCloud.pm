@@ -68,7 +68,7 @@ sub new {
   $org = 'System' unless $org; # Default to "System" org
 
   my $self  = {};
-  bless($self);
+  bless($self,$class);
 
   our $cache = new Cache::Bounded;
 

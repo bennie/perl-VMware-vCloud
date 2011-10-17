@@ -4,14 +4,19 @@ NB: Skipped version numbers were never released.
 
 VERSIONTAG DATETAG
 
+  Added:
+    XML schema descriptors for 1.0 and 1.5 included in distribution.
+    VMware::API::vCloud - Added "Template name validation" to "BUGS and LIMITATIONS" POD.
+
   Improved:
-    examples/poweron-vapp.pl - corrected documentation (POD)
+    examples/poweron-vapp.pl - Corrected documentation.
+    VMware::vCloud and VMware::vCloud::vApp now used bless() with two arguments.
 
 2.07 2011/10/06
 
   Improved:
-    VMware::API::vCloud: Error handling now recognizes an HTTP::Response object
-    Synopsis documentation on VMware::vCloud
+    VMware::API::vCloud: Error handling now recognizes an HTTP::Response object.
+    Synopsis documentation on VMware::vCloud.
 
   Fixed:
     Included VMware::vCloud::vApp in MANIFEST
@@ -19,7 +24,7 @@ VERSIONTAG DATETAG
 2.06 2011/10/05
 
   Added:
-    VMware::vCloud::vApp - An object representation of a vApp
+    VMware::vCloud::vApp - An object representation of a vApp.
     examples/poweron-vapp.pl - Powering a vApp on.
 
   Improved:

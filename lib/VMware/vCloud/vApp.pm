@@ -28,7 +28,7 @@ sub new {
   our $href = shift @_;
 
   my $self = {};
-  bless($self);
+  bless($self,$class);
   
   our $data = $api->vapp_get($href);
   
