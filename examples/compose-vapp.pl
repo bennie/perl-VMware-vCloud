@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -91,8 +91,47 @@ for my $ref (@links) {
 
 # XML to build
 
-open INFILE, '<../t/test.xml' or die "BOOM";
-my $xml= join('',<INFILE>);
-close INFILE;
+my $xml = '<ComposeVAppParams name="Example Corps CRM Appliance" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
+  <InstantiationParams>
+    <NetworkConfigSection>
+      <ovf:Info>Configuration parameters for logical networks</ovf:Info>
+      <NetworkConfig networkName="CRMApplianceNetwork">
+        <Configuration>
+          <ParentNetwork href="http://vcloud.example.com/api/v1.0/network/54"/> 
+          <FenceMode>bridged</FenceMode>
+        </Configuration>
+      </NetworkConfig>
+    </NetworkConfigSection>
+  </InstantiationParams>
+  <Item>
+    <Source href="http://vcloud.example.com/api/v1.0/vApp/vm-4"/>
+    <InstantiationParams>
+      <NetworkConnectionSection
+        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
+        href="http://vcloud.example.com/api/v1.0/vApp/vm-4/
+        networkConnectionSection/" ovf:required="false">
+        <ovf:Info/>
+        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+        <NetworkConnection network="CRMApplianceNetwork">
+          <NetworkConnectionIndex>0</NetworkConnectionIndex>
+          <IsConnected>true</IsConnected>
+          <IpAddressAllocationMode>DHCP</IpAddressAllocationMode>
+        </NetworkConnection>
+      </NetworkConnectionSection>
+    </InstantiationParams>
+  </Item>
+  <Item>
+    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-114"/>
+  </Item>
+  <Item>
+    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-190"/>
+  </Item>
+  <AllEULAsAccepted>true</AllEULAsAccepted>
+</ComposeVAppParams>';
 
-print Dumper($xml);
+$xml = '<ComposeVAppParams name="Example Corps CRM Appliance" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
+</ComposeVAppParams>';
+
+my $ret = $vcd->{api}->post($url,$xml);
+
+print Dumper($ret);
