@@ -6,12 +6,18 @@ VERSIONTAG DATETAG
 
   Added:
     XML schema descriptors for 1.0 and 1.5 included in distribution.
-    VMware::API::vCloud - Added "Template name validation" to "BUGS and LIMITATIONS" POD.
+    VMware::API::vCloud - "Template name validation" to "BUGS and LIMITATIONS" POD.
+    VMware::vCloud - get_template(), list_networks(), list_vdcs()
+    VMware::API::vCloud - template_get()
 
   Improved:
     examples/poweron-vapp.pl - Corrected documentation.
-    VMware::vCloud and VMware::vCloud::vApp now used bless() with two arguments.
-
+    VMware::vCloud & VMware::vCloud::vApp - now used bless() with two arguments.
+    VMware::API::vCloud
+      _fault() now pushes a Dumper() of the HTTP object on error. That gives 
+         more detail on a fault when debug is enabled.
+      post() now has optional parameters for content and content type.
+      
 2.07 2011/10/06
 
   Improved:

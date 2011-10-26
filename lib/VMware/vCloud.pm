@@ -1,6 +1,7 @@
 package VMware::vCloud;
 
 use Cache::Bounded;
+use Data::Dumper;
 use VMware::API::vCloud;
 use VMware::vCloud::vApp;
 use strict;
@@ -80,6 +81,78 @@ sub new {
 
 ### Standard methods
 
+=head2 compose_vapp()
+
+=cut
+
+sub compose_vapp {
+  my $self = shift @_;
+  my $name = shift @_;
+
+  my $vdcid  = shift @_;  
+  my $tmplid = shift @_;
+  my $netid  = shift @_;
+  
+  my %template = $self->get_template($tmplid);
+  my %vdc = $self->get_vdc($vdcid);
+
+#die(Dumper(\%template));
+
+  my @links = @{$vdc{Link}};
+  my $url;
+
+  for my $ref (@links) {
+    $url = $ref->{href} if $ref->{type} eq 'application/vnd.vmware.vcloud.composeVAppParams+xml';
+  }
+
+  my $fencemode = 'bridged'; # bridged
+
+  # XML to build
+
+my $xml = '<ComposeVAppParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
+  <InstantiationParams>
+    <NetworkConfigSection>
+      <ovf:Info>Configuration parameters for logical networks</ovf:Info>
+      <NetworkConfig networkName="foo">
+        <Configuration>
+          <ParentNetwork href="'.$netid.'"/> 
+          <FenceMode>'.$fencemode.'</FenceMode>
+        </Configuration>
+      </NetworkConfig>
+    </NetworkConfigSection>
+  </InstantiationParams>
+  <Item>
+    <Source href="'.$template{href}.'"/>
+  </Item>
+  <AllEULAsAccepted>true</AllEULAsAccepted>
+</ComposeVAppParams>';
+
+
+#  <Item>
+#    <Source href="http://vcloud.example.com/api/v1.0/vApp/vm-4"/>
+#    <InstantiationParams>
+#      <NetworkConnectionSection
+#        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
+#        href="http://vcloud.example.com/api/v1.0/vApp/vm-4/
+#        networkConnectionSection/" ovf:required="false">
+#        <ovf:Info/>
+#        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+#        <NetworkConnection network="CRMApplianceNetwork">
+#          <NetworkConnectionIndex>0</NetworkConnectionIndex>
+#          <IsConnected>true</IsConnected>
+#          <IpAddressAllocationMode>DHCP</IpAddressAllocationMode>
+#        </NetworkConnection>
+#      </NetworkConnectionSection>
+#    </InstantiationParams>
+#  </Item>
+#  <Item>
+#    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-114"/>
+#  </Item>
+
+my $ret = $self->{api}->post($url,'application/vnd.vmware.vcloud.composeVAppParams+xml',$xml);
+
+}
+
 =head2 get_org($orgid)
 
 Given an organization id, it returns a hash of data for that organization.
@@ -117,6 +190,48 @@ sub get_org {
 
   $cache->set('get_org:'.$id,\%org);
   return %org;
+}
+
+=head2 get_template($templateid)
+
+Given an organization id, it returns a hash of data for that organization.
+
+=cut
+
+sub get_template {
+  my $self = shift @_;
+  my $id   = shift @_;
+
+  my $tmpl = our $cache->get('get_template:'.$id);
+  return %$tmpl if defined $tmpl;
+  
+  my $raw_tmpl_data = $self->{api}->template_get($id);
+
+  my %tmpl = %$raw_tmpl_data;
+
+=head foo
+  $tmpl{description} = $raw_org_data->{Description}->[0];
+  $tmpl{name}        = $raw_org_data->{name};
+
+  $raw_org_data->{href} =~ /([^\/]+)$/;
+  $org{id} = $1;
+
+  $org{contains} = {};
+  
+  for my $link ( @{$raw_org_data->{Link}} ) {
+    $link->{type} =~ /^application\/vnd.vmware.vcloud.(\w+)\+xml$/;
+    my $type = $1;
+    $link->{href} =~ /([^\/]+)$/;
+    my $id = $1;
+    
+    next if $type eq 'controlAccess';
+    
+    $org{contains}{$type}{$id} = $link->{name};
+  }
+=cut
+
+  $cache->set('get_template:'.$id,\%tmpl);
+  return %tmpl;
 }
 
 =head2 get_vapp($vappid)
@@ -180,6 +295,39 @@ sub get_vdc {
   return %$raw_vdc_data;
 }
 
+=head2 list_networks() | list_networks($vdcid)
+
+This method returns a hash or hashref of network names and IDs.
+
+Given an optional VDCid it will return only the networks available in that VDC.
+
+=cut
+
+sub list_networks {
+  my $self = shift @_;
+  my $vdcid = shift @_;
+
+  my $networks = our $cache->get("list_networks:$vdcid:");
+  return %$networks if defined $networks;
+
+  my %networks;
+  my %vdcs = ( $vdcid ? ( $vdcid => 1 ) : $self->list_vdcs() );
+
+  for my $vdcid ( keys %vdcs ) {
+    my %vdc = $self->get_vdc($vdcid);
+    my @networks = @{$vdc{AvailableNetworks}};
+    for my $netblock (@networks) {
+      for my $name ( keys %{$netblock->{Network}} ) {
+        my $href = $netblock->{Network}->{$name}->{href};
+        $networks{$href} = $name;
+      }
+    }
+  }
+
+  $cache->set("list_networks:$vdcid:",\%networks);
+  return %networks;
+}
+
 =head2 list_orgs()
 
 This method returns a hash or hashref of Organization names and IDs.
@@ -214,16 +362,8 @@ sub list_templates {
   return %$templates if defined $templates;
 
   my %orgs = $self->list_orgs();
-
-  my %vdcs;
+  my %vdcs = $self->list_vdcs();
   
-  for my $orgid ( keys %orgs ) {
-    my %org = $self->get_org($orgid);
-    for my $vdcid ( keys %{$org{contains}{vdc}} ) {
-      $vdcs{$vdcid}++;
-    }
-  }
-
   my %templates;
   
   for my $vdcid ( keys %vdcs ) {
@@ -254,17 +394,8 @@ sub list_vapps {
   my $vapps = our $cache->get('list_vapps:');
   return %$vapps if defined $vapps;
 
-  my %orgs = $self->list_orgs();
-
-  my %vdcs;
+  my %vdcs = $self->list_vdcs();
   
-  for my $orgid ( keys %orgs ) {
-    my %org = $self->get_org($orgid);
-    for my $vdcid ( keys %{$org{contains}{vdc}} ) {
-      $vdcs{$vdcid}++;
-    }
-  }
-
   my %vapps;
   
   for my $vdcid ( keys %vdcs ) {
@@ -280,6 +411,37 @@ sub list_vapps {
 
   $cache->set('list_vapps:',\%vapps);
   return %vapps;
+}
+
+=head2 list_vdcs() | list_vdcs($orgid)
+
+This method returns a hash or hashref of VDC names and IDs the user has
+access too.
+
+The optional argument of an $orgid will limit the returned list of VDCs in that 
+Organization.
+
+=cut
+
+sub list_vdcs {
+  my $self  = shift @_;
+  my $orgid = shift @_;
+
+  my $vdcs = our $cache->get("list_vdcs:$orgid:");
+  return %$vdcs if defined $vdcs;
+
+  my %orgs = ( $orgid ? ( $orgid => 1 ) : $self->list_orgs() );
+  my %vdcs;
+  
+  for my $orgid ( keys %orgs ) {
+    my %org = $self->get_org($orgid);
+    for my $vdcid ( keys %{$org{contains}{vdc}} ) {
+      $vdcs{$vdcid} = $org{contains}{vdc}{$vdcid};
+    }
+  }
+
+  $cache->set("list_vdcs:$orgid:",\%vdcs);
+  return %vdcs;
 }
 
 =head2 login()

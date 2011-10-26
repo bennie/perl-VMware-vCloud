@@ -147,7 +147,8 @@ sub _fault {
   my $message = "\nERROR: ";
   
   if ( length(@error) and ref $error[0] eq 'HTTP::Response' ) {
-    $message .= $error[0]->status_line;
+    $message .= $error[0]->status_line;    
+    $self->_debug( Dumper(\@error) );
     die $message;
   }
   
@@ -308,8 +309,14 @@ sub post {
   my $self = shift @_;
   my $href = shift @_;
 
+  my $type = shift @_;
+  my $content = shift @_;
+
   $self->_debug("API: post($href)\n") if $self->{debug};
   my $req = HTTP::Request->new( POST => $href );
+
+  $req->content_type($type) if $type;
+  $req->content($content) if $content;
 
   my $response = $self->{ua}->request($req);
   my $data = $self->_xml_response($response);
@@ -317,6 +324,31 @@ sub post {
   my @ret = ( $response->message, $response->code, $data );
 
   return wantarray ? @ret : \@ret;
+}
+
+=head2 template_get($templateid or $templateurl)
+
+As a parameter, this method thakes the raw numeric id of the template or the full URL.
+
+It returns the requested template.
+
+=cut
+
+sub template_get {
+  my $self = shift @_;
+  my $tmpl = shift @_;
+  my $req;
+
+  $self->_debug("API: template_get($tmpl)\n") if $self->{debug};
+  
+  if ( $tmpl =~ /^[^\/]+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'tmpl/' . $tmpl );
+  } else {
+    $req = HTTP::Request->new( GET =>  $tmpl );
+  }
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
 }
 
 =head2 vdc_get($vdcid or $vdcurl)

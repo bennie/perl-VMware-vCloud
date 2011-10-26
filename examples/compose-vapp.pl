@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.3 $' )[1];
+my $version = ( split ' ', '$Revision: 1.4 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -28,107 +28,61 @@ die "Check the POD. This script needs command line parameters." unless
 
 my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
 
-# Select a template
+# Select an Org
 
-my %templates = $vcd->list_templates();
-my @templates = sort { lc($templates{$a}) cmp lc($templates{$b}) } keys %templates; # Put the names in alpha order
-
-my $line = '='x80;
-my $i = 1;
-
-print "$line\n\nSelect a Template to compose:\n";
-
-for my $template (@templates) {
-  print "   $i. \"$templates{$template}\"\n";
-  $i++;
-}
-
-print "\n$line\n";
-
-my $id = <STDIN>;
-chomp $id;
-$id -= 1;
-
-my $templateid = $templates[$id];
-print "\nGoing to try compose $templates{$templateid}.\n";
-print "\n$line\n";
+my %orgs = $vcd->list_orgs();
+my $orgid = &select_one("Select the Org you wish to create a vApp in:",\%orgs);
 
 # Select a VDC
 
-my %vdcs = $vcd->list_vdcs();
-my @vdcs = sort { lc($vdcs{$a}) cmp lc($vdcs{$b}) } keys %vdcs; # Put the names in alpha order
+my %vdcs = $vcd->list_vdcs($orgid);
+my $vdcid = &select_one("Select the Virtual Data Center you wish to create a vApp in:",\%vdcs);
 
-$i = 1;
+# Select a template
 
-print "$line\n\nSelect a VDC to compose it too:\n";
+my %templates = $vcd->list_templates();
+my $templateid = &select_one("Select the Template you wish to put in your vApp:",\%templates);
 
-for my $vdc (@vdcs) {
-  print "   $i. \"$vdcs{$vdc}\"\n";
-  $i++;
-}
+# Select network
 
-print "\n$line\n";
+my %networks = $vcd->list_networks($vdcid);
+my $networkid = &select_one("Select the Network you wish the template to use in:",\%networks);
 
-$id = <STDIN>;
-chomp $id;
-$id -= 1;
+print "$networks{$networkid}\n";
 
-my $vdcid = $vdcs[$id];
-print "\nGoing to try compsing $vdcs{$vdcid}.\n";
-print "\n$line\n";
+# Build the vApp
 
-# Get the relevant info
+my $name = 'Example vApp';
 
-my %template = $vcd->get_template($templateid);
-my %vdc = $vcd->get_vdc($vdcid);
-
-my @links = @{$vdc{Link}};
-my $url;
-
-for my $ref (@links) {
-  $url = $ref->{href} if $ref->{type} eq 'application/vnd.vmware.vcloud.composeVAppParams+xml';
-}
-
-# XML to build
-
-my $xml = '<ComposeVAppParams name="Example Corps CRM Appliance" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
-  <InstantiationParams>
-    <NetworkConfigSection>
-      <ovf:Info>Configuration parameters for logical networks</ovf:Info>
-      <NetworkConfig networkName="CRMApplianceNetwork">
-        <Configuration>
-          <ParentNetwork href="http://vcloud.example.com/api/v1.0/network/54"/> 
-          <FenceMode>bridged</FenceMode>
-        </Configuration>
-      </NetworkConfig>
-    </NetworkConfigSection>
-  </InstantiationParams>
-  <Item>
-    <Source href="http://vcloud.example.com/api/v1.0/vApp/vm-4"/>
-    <InstantiationParams>
-      <NetworkConnectionSection
-        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
-        href="http://vcloud.example.com/api/v1.0/vApp/vm-4/
-        networkConnectionSection/" ovf:required="false">
-        <ovf:Info/>
-        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
-        <NetworkConnection network="CRMApplianceNetwork">
-          <NetworkConnectionIndex>0</NetworkConnectionIndex>
-          <IsConnected>true</IsConnected>
-          <IpAddressAllocationMode>DHCP</IpAddressAllocationMode>
-        </NetworkConnection>
-      </NetworkConnectionSection>
-    </InstantiationParams>
-  </Item>
-  <Item>
-    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-114"/>
-  </Item>
-  <Item>
-    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-190"/>
-  </Item>
-  <AllEULAsAccepted>true</AllEULAsAccepted>
-</ComposeVAppParams>';
-
-my $ret = $vcd->{api}->post($url,'application/vnd.vmware.vcloud.composeVAppParams+xml',$xml);
+my $ret = $vcd->compose_vapp($name,$vdcid,$templateid,$networkid);
 
 print Dumper($ret);
+
+#### Subroutines
+
+# This subroutine quickly handles user input to select items from a hash
+
+sub select_one {
+  my $message = shift @_;
+  
+  my %items = %{shift @_};
+  my @items = sort { lc($items{$a}) cmp lc($items{$b}) } keys %items; # Put the names in alpha order
+
+  my $line = '='x80;
+  my $i = 1;
+
+  print "$line\n\n$message\n";
+
+  for my $item (@items) {
+    print "   $i. \"$items{$item}\"\n";
+    $i++;
+  }
+
+  print "\n$line\n";
+
+  my $id = <STDIN>;
+  chomp $id;
+  $id -= 1;
+
+  return $items[$id];
+}
