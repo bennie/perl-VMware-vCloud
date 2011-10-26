@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.2 $' )[1];
+my $version = ( split ' ', '$Revision: 1.3 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -129,9 +129,6 @@ my $xml = '<ComposeVAppParams name="Example Corps CRM Appliance" xmlns="http://w
   <AllEULAsAccepted>true</AllEULAsAccepted>
 </ComposeVAppParams>';
 
-$xml = '<ComposeVAppParams name="Example Corps CRM Appliance" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
-</ComposeVAppParams>';
-
-my $ret = $vcd->{api}->post($url,$xml);
+my $ret = $vcd->{api}->post($url,'application/vnd.vmware.vcloud.composeVAppParams+xml',$xml);
 
 print Dumper($ret);
