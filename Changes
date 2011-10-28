@@ -7,7 +7,8 @@ VERSIONTAG DATETAG
   Added:
     XML schema descriptors for 1.0 and 1.5 included in distribution.
     VMware::API::vCloud - "Template name validation" to "BUGS and LIMITATIONS" POD.
-    VMware::vCloud - get_template(), list_networks(), list_vdcs()
+    VMware::vCloud - create_vapp_from_template(), get_template(), 
+      list_networks(), list_vdcs()
     VMware::API::vCloud - template_get()
 
   Improved:

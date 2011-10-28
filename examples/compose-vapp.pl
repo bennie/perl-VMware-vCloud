@@ -5,7 +5,7 @@ This example script uses the API to compose a template to a vApp
 
 =head2 Usage
 
-  ./poweron-vapp.pl --username USER --password PASS --orgname ORG --hostname HOST
+  ./compose-vapp.pl --username USER --password PASS --orgname ORG --hostname HOST
   
 Orgname is optional. It will default to "System" if not given. 
 
@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.4 $' )[1];
+my $version = ( split ' ', '$Revision: 1.5 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -54,7 +54,7 @@ print "$networks{$networkid}\n";
 
 my $name = 'Example vApp';
 
-my $ret = $vcd->compose_vapp($name,$vdcid,$templateid,$networkid);
+my $ret = $vcd->create_vapp_from_template($name,$vdcid,$templateid,$networkid);
 
 print Dumper($ret);
 
