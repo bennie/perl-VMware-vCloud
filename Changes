@@ -10,6 +10,8 @@ VERSIONTAG DATETAG
     VMware::vCloud - create_vapp_from_template(), get_template(), 
       list_networks(), list_vdcs()
     VMware::API::vCloud - template_get()
+    examples/list-templates.pl - Example of how to list templates.
+    examples/create-vapp-from-template.pl - Instantiate a template with defaults.
 
   Improved:
     examples/poweron-vapp.pl - Corrected documentation.
@@ -18,6 +20,9 @@ VERSIONTAG DATETAG
       _fault() now pushes a Dumper() of the HTTP object on error. That gives 
          more detail on a fault when debug is enabled.
       post() now has optional parameters for content and content type.
+      
+  Fixed:
+    examples/poweron-vappl.pl - Now actually included in the distribution
       
 2.07 2011/10/06
 

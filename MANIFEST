@@ -74,9 +74,12 @@ etc/schemas/external/ovf1.1/dsp8027_1.1.0.xsd
 etc/schemas/external/xml.xsd
 etc/schemas/versioning/versions.xjb
 etc/schemas/versioning/versions.xsd
+examples/create-vapp-from-template.pl
 examples/login.pl
+examples/list-templates.pl
 examples/list-vapps.pl
 examples/org_get.pl
+examples/poweron-vapp.pl
 lib/VMware/API/vCloud.pm
 lib/VMware/vCloud.pm
 lib/VMware/vCloud/vApp.pm

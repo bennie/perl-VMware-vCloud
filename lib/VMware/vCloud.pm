@@ -81,7 +81,12 @@ sub new {
 
 ### Standard methods
 
-=head2 create_vapp_from_template()
+=head2 create_vapp_from_template($name,$vdcid,$tmplid,$netid)
+
+Given a name, VDC, template and network, instantiate the template with the given
+settings and other defaults.
+
+Details of the create task will be returned.
 
 =cut
 
