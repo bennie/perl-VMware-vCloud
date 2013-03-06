@@ -207,13 +207,15 @@ sub api_version {
   my $response = $self->{ua}->request($req);
   if ( $response->status_line eq '200 OK' ) {
     my $info = XMLin( $response->content );
-    
+
     my $version = 1.0;
-    for my $verblock ( @{$info->{VersionInfo}} ) { 
+    for my $verblock ( @{$info->{VersionInfo}} ) {
+      next if $verblock->{Version} eq '5.1';
       $version = $verblock->{Version} if $verblock->{Version} > $version;
+      $self->{api_version_info} = $verblock;
     }
 
-    return '1.0'; # Override: $version;
+    return $version;
   } else {
     $self->_fault($response);
   }
@@ -227,12 +229,20 @@ This call takes the username and password provided and creates an authentication
 
 sub login {
   my $self = shift @_;
-  my $req = HTTP::Request->new( POST =>  $self->{url_base} . 'login' ); 
 
-  $req->authorization_basic( $self->{username} .'@'. $self->{orgname}, $self->{password} ); 
+  my $login_url   = $self->{api_version_info}->{LoginUrl};
+  my $api_version = $self->{api_version_info}->{Version};
+
+  $self->_debug("Login URL: $login_url");
+  my $req = HTTP::Request->new( POST => $login_url ); 
+
+  $req->authorization_basic( $self->{username} .'@'. $self->{orgname}, $self->{password} );
   $self->_debug("Attempting to login: " . $self->{username} .'@'. $self->{orgname} .' '. $self->{password} );
- 
 
+  my $accept = 'application/*+xml;version='.$api_version;
+  $self->_debug("Accept header: $accept");
+  $req->header( Accept => $accept );
+ 
   my $response = $self->{ua}->request($req);
 
   my $token = $response->header('x-vcloud-authorization');

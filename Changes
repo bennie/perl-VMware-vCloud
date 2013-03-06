@@ -4,6 +4,13 @@ NB: Skipped version numbers were never released.
 
 VERSIONTAG DATETAG
 
+  Fixed:
+    Version now read directly from offered versions.
+    Login URL as directed by Version response.
+    Version now included in accept header for authentication.
+
+2.12 2011/10/27
+
   Added:
     XML schema descriptors for 1.0 and 1.5 included in distribution.
     VMware::API::vCloud - "Template name validation" to "BUGS and LIMITATIONS" POD.
