@@ -61,6 +61,10 @@ U<Arguments>
 
 =cut
 
+#      $self->{learned}->{version_info} - Full data on the API version from login (populated on api_version() call)
+#      $self->{learned}->{version} - API version number (populated on api_version() call)
+#      $self->{learned}->{url}->{login} - Authentication URL (populated on api_version() call)
+
 sub new {
   my $class = shift @_;
   my $self  = {};
@@ -208,14 +212,16 @@ sub api_version {
   if ( $response->status_line eq '200 OK' ) {
     my $info = XMLin( $response->content );
 
-    my $version = 1.0;
+    $self->{learned}->{version} = 0;
     for my $verblock ( @{$info->{VersionInfo}} ) {
-      next if $verblock->{Version} eq '5.1';
-      $version = $verblock->{Version} if $verblock->{Version} > $version;
-      $self->{api_version_info} = $verblock;
+      if ( $verblock->{Version} > $self->{learned}->{version} ) {
+        $self->{learned}->{version_info} = $verblock;
+        $self->{learned}->{version}      = $verblock->{Version};
+        $self->{learned}->{url}->{login} = $verblock->{LoginUrl};
+      }
     }
 
-    return $version;
+    return $self->{learned}->{version};
   } else {
     $self->_fault($response);
   }
@@ -230,16 +236,13 @@ This call takes the username and password provided and creates an authentication
 sub login {
   my $self = shift @_;
 
-  my $login_url   = $self->{api_version_info}->{LoginUrl};
-  my $api_version = $self->{api_version_info}->{Version};
-
-  $self->_debug("Login URL: $login_url");
-  my $req = HTTP::Request->new( POST => $login_url ); 
+  $self->_debug('Login URL: '.$self->{learned}->{url}->{login});
+  my $req = HTTP::Request->new( POST => $self->{learned}->{url}->{login} ); 
 
   $req->authorization_basic( $self->{username} .'@'. $self->{orgname}, $self->{password} );
   $self->_debug("Attempting to login: " . $self->{username} .'@'. $self->{orgname} .' '. $self->{password} );
 
-  my $accept = 'application/*+xml;version='.$api_version;
+  my $accept = 'application/*+xml;version='.$self->{learned}->{version};
   $self->_debug("Accept header: $accept");
   $req->header( Accept => $accept );
  
@@ -251,7 +254,13 @@ sub login {
   $self->_debug( "Authentication status: " . $response->status_line );
   $self->_debug( "Authentication token: " . $token );
 
-  return $self->_xml_response($response);
+  $self->{api_login_data} = $self->_xml_response($response);
+
+  for my $link ( @{$self->{api_login_data}->{Link}} ) {
+    $self->{learned}->{url}->{orglist} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
+  }
+
+  return $self->{api_login_data};
 }
 
 ### API methods

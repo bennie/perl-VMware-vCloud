@@ -374,8 +374,10 @@ This method returns a hash or hashref of Organization names and IDs.
 
 sub list_orgs {
   my $self = shift @_;
-
   my %orgs;
+
+  die $self->{api}->{learned}->{url}->{orglist};
+
   for my $orgname ( keys %{$self->{raw_login_data}->{Org}} ) {
     my $href = $self->{raw_login_data}->{Org}->{$orgname}->{href};
     $href =~ /([^\/]+)$/;
