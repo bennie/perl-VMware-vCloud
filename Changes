@@ -4,11 +4,20 @@ NB: Skipped version numbers were never released.
 
 VERSIONTAG DATETAG
 
-  Fixed:
-    Version now read directly from offered versions.
-    Login URL as directed by Version response.
-    Version now included in accept header for authentication.
+  Added:
+    API version information is now read directly from offered versions.
+    Now working with API version v5.1
+    Learned variables and Raw responses now attached to $VMware::API::vCloud::self
+    When Debug is on, learned variables are displayed on exit.
+    
+  Improved:
+    Most recent version is used.
+    Login URL is now directed by Version response.
+    org_list() now generated in VMware::API::vCloud with caching.
 
+  Fixed:
+    Version now included in accept header for authentication.
+  
 2.12 2011/10/27
 
   Added:

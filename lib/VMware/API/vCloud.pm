@@ -61,9 +61,11 @@ U<Arguments>
 
 =cut
 
-#      $self->{learned}->{version_info} - Full data on the API version from login (populated on api_version() call)
+#      $self->{raw}->{version} - Full data on the API version from login (populated on api_version() call)
+#      $self->{raw}->{login}
 #      $self->{learned}->{version} - API version number (populated on api_version() call)
 #      $self->{learned}->{url}->{login} - Authentication URL (populated on api_version() call)
+# $self->{learned}->{url}->{orglist}
 
 sub new {
   my $class = shift @_;
@@ -134,6 +136,11 @@ sub config {
 }
 
 ### Internal methods
+
+sub DESTROY {
+  my $self = shift @_;
+  $self->_debug('Learned variables: '.Dumper($self->{learned}));
+}
 
 sub _debug {
   my $self = shift @_;
@@ -215,7 +222,7 @@ sub api_version {
     $self->{learned}->{version} = 0;
     for my $verblock ( @{$info->{VersionInfo}} ) {
       if ( $verblock->{Version} > $self->{learned}->{version} ) {
-        $self->{learned}->{version_info} = $verblock;
+        $self->{raw}->{version}          = $verblock;
         $self->{learned}->{version}      = $verblock->{Version};
         $self->{learned}->{url}->{login} = $verblock->{LoginUrl};
       }
@@ -242,9 +249,9 @@ sub login {
   $req->authorization_basic( $self->{username} .'@'. $self->{orgname}, $self->{password} );
   $self->_debug("Attempting to login: " . $self->{username} .'@'. $self->{orgname} .' '. $self->{password} );
 
-  my $accept = 'application/*+xml;version='.$self->{learned}->{version};
-  $self->_debug("Accept header: $accept");
-  $req->header( Accept => $accept );
+  $self->{learned}->{accept_header} = 'application/*+xml;version='.$self->{learned}->{version};
+  $self->_debug('Accept header: '.$self->{learned}->{accept_header});
+  $req->header( Accept => $self->{learned}->{accept_header} );
  
   my $response = $self->{ua}->request($req);
 
@@ -254,13 +261,13 @@ sub login {
   $self->_debug( "Authentication status: " . $response->status_line );
   $self->_debug( "Authentication token: " . $token );
 
-  $self->{api_login_data} = $self->_xml_response($response);
+  $self->{raw}->{login} = $self->_xml_response($response);
 
-  for my $link ( @{$self->{api_login_data}->{Link}} ) {
+  for my $link ( @{$self->{raw}->{login}->{Link}} ) {
     $self->{learned}->{url}->{orglist} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
   }
 
-  return $self->{api_login_data};
+  return $self->{raw}->{login};
 }
 
 ### API methods
@@ -285,6 +292,8 @@ sub catalog_get {
   } else {
     $req = HTTP::Request->new( GET =>  $cat );
   }
+
+  $req->header( Accept => $self->{learned}->{accept_header} );
 
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
@@ -311,6 +320,19 @@ sub org_get {
     $req = HTTP::Request->new( GET =>  $org );
   }
 
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+sub org_list {
+  my $self = shift @_;
+  $self->_debug("API: org_list()\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{orglist} );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
@@ -334,8 +356,9 @@ sub post {
   $self->_debug("API: post($href)\n") if $self->{debug};
   my $req = HTTP::Request->new( POST => $href );
 
-  $req->content_type($type) if $type;
   $req->content($content) if $content;
+  $req->content_type($type) if $type;
+  $req->header( Accept => $self->{learned}->{accept_header} );
 
   my $response = $self->{ua}->request($req);
   my $data = $self->_xml_response($response);
@@ -366,6 +389,8 @@ sub template_get {
     $req = HTTP::Request->new( GET =>  $tmpl );
   }
 
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
@@ -391,6 +416,8 @@ sub vdc_get {
     $req = HTTP::Request->new( GET =>  $vdc );
   }
 
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
@@ -415,6 +442,8 @@ sub vapp_get {
   } else {
     $req = HTTP::Request->new( GET =>  $vapp );
   }
+
+  $req->header( Accept => $self->{learned}->{accept_header} );
 
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);

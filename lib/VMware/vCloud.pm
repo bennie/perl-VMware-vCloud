@@ -374,18 +374,19 @@ This method returns a hash or hashref of Organization names and IDs.
 
 sub list_orgs {
   my $self = shift @_;
-  my %orgs;
+  my $orgs = our $cache->get('list_orgs:');
 
-  die $self->{api}->{learned}->{url}->{orglist};
-
-  for my $orgname ( keys %{$self->{raw_login_data}->{Org}} ) {
-    my $href = $self->{raw_login_data}->{Org}->{$orgname}->{href};
-    $href =~ /([^\/]+)$/;
-    my $orgid = $1;
-    $orgs{$orgid} = $orgname;
+  unless ( defined $orgs ) {
+    $orgs = {};
+    my $ret = $self->{api}->org_list();
+    for my $orgname ( keys %{$ret->{Org}} ) {
+      warn "Org type of $ret->{Org}->{$orgname}->{type} listed for $orgname\n" unless $ret->{Org}->{$orgname}->{type} eq 'application/vnd.vmware.vcloud.org+xml';
+      $orgs->{$orgname} = $ret->{Org}->{$orgname}->{href};
+    }
+    $cache->set('list_orgs:',$orgs); 
   }
-
-  return wantarray ? %orgs : \%orgs;  
+  
+  return wantarray ? %$orgs : $orgs if defined $orgs;
 }
 
 =head2 list_templates()
@@ -430,27 +431,25 @@ access too.
 
 sub list_vapps {
   my $self  = shift @_;
-
   my $vapps = our $cache->get('list_vapps:');
-  return %$vapps if defined $vapps;
-
-  my %vdcs = $self->list_vdcs();
   
-  my %vapps;
-  
-  for my $vdcid ( keys %vdcs ) {
-    my %vdc = $self->get_vdc($vdcid);
-    for my $entity ( @{$vdc{ResourceEntities}} ) {
-      for my $name ( keys %{$entity->{ResourceEntity}} ) {
-        next unless $entity->{ResourceEntity}->{$name}->{type} eq 'application/vnd.vmware.vcloud.vApp+xml';
-        my $href = $entity->{ResourceEntity}->{$name}->{href};
-        $vapps{$href} = $name;
+  unless ( defined $vapps ) {
+    my %vdcs = $self->list_vdcs();
+    
+    for my $vdcid ( keys %vdcs ) {
+      my %vdc = $self->get_vdc($vdcid);
+      for my $entity ( @{$vdc{ResourceEntities}} ) {
+        for my $name ( keys %{$entity->{ResourceEntity}} ) {
+          next unless $entity->{ResourceEntity}->{$name}->{type} eq 'application/vnd.vmware.vcloud.vApp+xml';
+          my $href = $entity->{ResourceEntity}->{$name}->{href};
+          $vapps->{$href} = $name;
+        }
       }
     }
   }
-
-  $cache->set('list_vapps:',\%vapps);
-  return %vapps;
+  
+  $cache->set('list_vapps:',$vapps);
+  return wantarray ? %$vapps : $vapps if defined $vapps;
 }
 
 =head2 list_vdcs() | list_vdcs($orgid)
@@ -458,30 +457,31 @@ sub list_vapps {
 This method returns a hash or hashref of VDC names and IDs the user has
 access too.
 
-The optional argument of an $orgid will limit the returned list of VDCs in that 
-Organization.
+The optional argument of an $orgname will limit the returned list of VDCs in 
+that Organization.
 
 =cut
 
 sub list_vdcs {
-  my $self  = shift @_;
-  my $orgid = shift @_;
+  my $self    = shift @_;
+  my $orgname = shift @_;
+  my $vdcs = our $cache->get("list_vdcs:$orgname:");
 
-  my $vdcs = our $cache->get("list_vdcs:$orgid:");
-  return %$vdcs if defined $vdcs;
-
-  my %orgs = ( $orgid ? ( $orgid => 1 ) : $self->list_orgs() );
-  my %vdcs;
-  
-  for my $orgid ( keys %orgs ) {
-    my %org = $self->get_org($orgid);
-    for my $vdcid ( keys %{$org{contains}{vdc}} ) {
-      $vdcs{$vdcid} = $org{contains}{vdc}{$vdcid};
+  unless ( defined $vdcs ) {
+    $vdcs = {};
+    my %orgs = $self->list_orgs();
+    %orgs = ( $orgname => $orgs{$orgname} ) if defined $orgname; 
+    
+    for my $orgname ( keys %orgs ) {
+      my %org = $self->get_org($orgs{$orgname});
+      for my $vdcid ( keys %{$org{contains}{vdc}} ) {
+        $vdcs->{$vdcid} = $org{contains}{vdc}{$vdcid};
+      }
     }
   }
 
-  $cache->set("list_vdcs:$orgid:",\%vdcs);
-  return %vdcs;
+  $cache->set("list_vdcs:$orgname:",$vdcs);
+  return wantarray ? %$vdcs : $vdcs;
 }
 
 =head2 login()
