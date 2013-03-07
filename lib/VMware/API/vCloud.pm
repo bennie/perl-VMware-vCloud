@@ -139,7 +139,9 @@ sub config {
 
 sub DESTROY {
   my $self = shift @_;
-  $self->_debug('Learned variables: '.Dumper($self->{learned}));
+  my @dump = split "\n", Dumper($self->{learned});
+  pop @dump; shift @dump;
+  $self->_debug("Learned variables: \n" . join("\n",@dump));
 }
 
 sub _debug {
@@ -219,6 +221,8 @@ sub api_version {
   if ( $response->status_line eq '200 OK' ) {
     my $info = XMLin( $response->content );
 
+    #die Dumper($info);
+
     $self->{learned}->{version} = 0;
     for my $verblock ( @{$info->{VersionInfo}} ) {
       if ( $verblock->{Version} > $self->{learned}->{version} ) {
@@ -264,7 +268,11 @@ sub login {
   $self->{raw}->{login} = $self->_xml_response($response);
 
   for my $link ( @{$self->{raw}->{login}->{Link}} ) {
-    $self->{learned}->{url}->{orglist} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
+    $self->{learned}->{url}->{admin}     = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vcloud+xml';
+    $self->{learned}->{url}->{entity}    = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.entity+xml';
+    $self->{learned}->{url}->{orglist}   = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
+    $self->{learned}->{url}->{querylist} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.query.queryList+xml';
+    #die Dumper($self->{raw}->{login}->{Link});
   }
 
   return $self->{raw}->{login};
@@ -299,9 +307,26 @@ sub catalog_get {
   return $self->_xml_response($response);
 }
 
+=head2 org_create()
+
+Create an organization?
+
+=cut
+
+sub org_create {
+  my $self = shift @_;
+
+  my $req = HTTP::Request->new( GET =>  $self->{learned}->{url}->{admin} );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+
+  #return $self->post($url,'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml',$xml);  
+}
+
 =head2 org_get($orgid or $orgurl)
 
-As a parameter, this method thakes the raw numeric id of the organization or the full URL detailed for the organization from the login catalog.
+As a parameter, this method takes the raw numeric id of the organization or the full URL detailed for the organization from the login catalog.
 
 It returns the requested organization.
 
@@ -325,6 +350,12 @@ sub org_get {
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
+
+=head2 org_list()
+
+Returns the full list of available organizations.
+
+=cut
 
 sub org_list {
   my $self = shift @_;
