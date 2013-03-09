@@ -144,6 +144,24 @@ sub DESTROY {
   $self->_debug("Learned variables: \n" . join("\n",@dump));
 }
 
+sub _admin_urls {
+  my $self = shift @_;
+  my $req = HTTP::Request->new( GET =>  $self->{learned}->{url}->{admin} );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  return $self->{learned}->{url}->{admin_actions} if defined $self->{learned}->{url}->{admin_actions};
+
+  my $response = $self->{ua}->request($req);
+  my $parsed = $self->_xml_response($response);
+
+  my $rightreference = $parsed->{RightReferences}->[0]->{RightReference};
+  for my $name ( keys %$rightreference ) {
+    $self->{learned}->{url}->{admin_actions}->{$name} = $rightreference->{$name}->{href};
+  }
+
+  return $self->{learned}->{url}->{admin_actions};
+}
+
 sub _debug {
   my $self = shift @_;
   return undef unless $self->{debug};
@@ -270,6 +288,7 @@ sub login {
   for my $link ( @{$self->{raw}->{login}->{Link}} ) {
     $self->{learned}->{url}->{admin}     = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vcloud+xml';
     $self->{learned}->{url}->{entity}    = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.entity+xml';
+    $self->{learned}->{url}->{extension} = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vmwExtension+xml';
     $self->{learned}->{url}->{orglist}   = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
     $self->{learned}->{url}->{querylist} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.query.queryList+xml';
     #die Dumper($self->{raw}->{login}->{Link});
@@ -307,7 +326,7 @@ sub catalog_get {
   return $self->_xml_response($response);
 }
 
-=head2 org_create()
+=head2 org_create($name,$desc,$fullname,$is_enabled)
 
 Create an organization?
 
@@ -315,13 +334,36 @@ Create an organization?
 
 sub org_create {
   my $self = shift @_;
+  my $name = shift @_;
+  my $desc = shift @_;
+  my $fullname = shift @_;
+  my $is_enabled = shift @_;
 
-  my $req = HTTP::Request->new( GET =>  $self->{learned}->{url}->{admin} );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  $self->_debug("API: org_create()\n") if $self->{debug};
+  my $url = $self->{learned}->{url}->{admin} . 'orgs';
 
-  #return $self->post($url,'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml',$xml);  
+  
+  my $xml = '
+<AdminOrg xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
+  <Description>'.$desc.'</Description>
+  <FullName>'.$fullname.'</FullName>
+  <IsEnabled>'.$is_enabled.'</IsEnabled>  
+    <Settings>
+        <OrgGeneralSettings>
+            <CanPublishCatalogs>true</CanPublishCatalogs>
+            <DeployedVMQuota>10</DeployedVMQuota>
+            <StoredVmQuota>15</StoredVmQuota>
+            <UseServerBootSequence>false</UseServerBootSequence>
+            <DelayAfterPowerOnSeconds>1</DelayAfterPowerOnSeconds>
+        </OrgGeneralSettings>
+    </Settings>
+</AdminOrg>
+  ';
+
+  my $ret = $self->post($url,'application/vnd.vmware.admin.organization+xml',$xml);
+
+  return $ret->[2]->{href} if $ret->[1] == 201;
+  return $ret;
 }
 
 =head2 org_get($orgid or $orgurl)
@@ -367,6 +409,61 @@ sub org_list {
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
+
+=head2 org_network_create($name,$desc,$gateway,$netmask,$dns1,$dns2,$dnssuffix,$is_enabled,$start_ip,$end_ip)
+
+Create an org network
+
+=cut
+
+sub org_network_create {
+  my $self = shift @_;
+  my $url  = shift @_;
+  my $name = shift @_;
+  my $desc = shift @_;
+
+  my $gateway    = shift @_;
+  my $netmask    = shift @_;
+  my $dns1       = shift @_;
+  my $dns2       = shift @_;
+  my $dnssuffix  = shift @_;
+  my $is_enabled = shift @_;
+
+  my $start_ip = shift @_;
+  my $end_ip   = shift @_;
+
+  $self->_debug("API: org_network_create()\n") if $self->{debug};
+  
+  my $xml = '
+<OrgNetwork xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
+  <Description>'.$desc.'</Description>
+    <Settings>
+      <IpScope>
+        <Gateway>'.$gateway .'</Gateway>
+        <Netmask>'.$netmask.'</Netmask>
+        <Dns1>'.$dns1.'</Dns1>
+        <Dns2>'.$dns2.'</Dns2>
+        <DnsSuffix>'.$dnssuffix.'</DnsSuffix>
+        <IsEnabled>'.$is_enabled.'</IsEnabled>
+        <IpRanges>
+           <IpRange>
+             <EndAddress>'.$end_ip.'</EndAddress>
+          </IpRange>
+        </IpRanges>
+      </IpScope>
+    </Settings>
+</OrgNetwork>
+  ';
+#             <StartAddress>'.$start_ip.'</StartAddress>
+
+  $url .= '/networks';
+
+  my $ret = $self->post($url,'application/vnd.vmware.admin.orgNetwork+xml',$xml);
+
+  return $ret->[2]->{href} if $ret->[1] == 201;
+  return $ret;
+}
+
 
 =head2 post($url)
 

@@ -206,6 +206,8 @@ sub get_org {
   
   my $raw_org_data = $self->{api}->org_get($id);
 
+print Dumper($raw_org_data);
+
   my %org;
   $org{description} = $raw_org_data->{Description}->[0];
   $org{name}        = $raw_org_data->{name};
@@ -376,7 +378,7 @@ sub list_orgs {
   my $self = shift @_;
   my $orgs = our $cache->get('list_orgs:');
 
-  unless ( defined $orgs ) {
+  #unless ( defined $orgs ) {
     $orgs = {};
     my $ret = $self->{api}->org_list();
     for my $orgname ( keys %{$ret->{Org}} ) {
@@ -384,7 +386,7 @@ sub list_orgs {
       $orgs->{$orgname} = $ret->{Org}->{$orgname}->{href};
     }
     $cache->set('list_orgs:',$orgs); 
-  }
+  #}
   
   return wantarray ? %$orgs : $orgs if defined $orgs;
 }
