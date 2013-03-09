@@ -206,8 +206,6 @@ sub get_org {
   
   my $raw_org_data = $self->{api}->org_get($id);
 
-print Dumper($raw_org_data);
-
   my %org;
   $org{description} = $raw_org_data->{Description}->[0];
   $org{name}        = $raw_org_data->{name};
@@ -359,7 +357,7 @@ sub list_networks {
     for my $netblock (@networks) {
       for my $name ( keys %{$netblock->{Network}} ) {
         my $href = $netblock->{Network}->{$name}->{href};
-        $networks{$href} = $name;
+        $networks{$name} = $href;
       }
     }
   }

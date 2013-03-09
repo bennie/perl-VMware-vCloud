@@ -338,11 +338,11 @@ sub org_create {
   my $desc = shift @_;
   my $fullname = shift @_;
   my $is_enabled = shift @_;
+  my $vdc_url = shift @_;
 
   $self->_debug("API: org_create()\n") if $self->{debug};
   my $url = $self->{learned}->{url}->{admin} . 'orgs';
 
-  
   my $xml = '
 <AdminOrg xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
   <Description>'.$desc.'</Description>
@@ -357,8 +357,11 @@ sub org_create {
             <DelayAfterPowerOnSeconds>1</DelayAfterPowerOnSeconds>
         </OrgGeneralSettings>
     </Settings>
+    <Vdcs>
+        <Vdc href="'.$vdc_url.'"/>
+    </Vdcs>  
 </AdminOrg>
-  ';
+';
 
   my $ret = $self->post($url,'application/vnd.vmware.admin.organization+xml',$xml);
 
@@ -464,6 +467,57 @@ sub org_network_create {
   return $ret;
 }
 
+=head2 org_network_create($name,$desc,$gateway,$netmask,$dns1,$dns2,$dnssuffix,$is_enabled,$start_ip,$end_ip)
+
+Create an org network
+
+=cut
+
+sub org_vdc_create {
+  my $self = shift @_;
+  my $url  = shift @_;
+  my $name = shift @_;
+  my $desc = shift @_;
+
+  my $allocation_model = 'AllocationVApp';
+
+  $self->_debug("API: org_vdc_create()\n") if $self->{debug};
+  
+  my $xml = '
+<CreateVdcParams xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
+  <Description>'.$desc.'</Description>
+  <AllocationModel>'.$allocation_model.'</AllocationModel>
+  <ComputeCapacity>
+    <Cpu>
+      <Units> MB </Units>
+      <Allocated> 500 </Allocated>
+      <Limit> 1000 </Limit>
+    </Cpu>
+    <Memory>
+      <Units> MB </Units>
+      <Allocated> 1000 </Allocated>
+      <Limit> 2000 </Limit>
+    </Memory>
+  </ComputeCapacity>
+  <IsEnabled> 1 </IsEnabled>
+  <VdcStorageProfile>
+        <Units> MB </Units>
+        <Limit> 100 </Limit>
+        <Default> 1 </Default>
+        <ProviderVdcStorageProfile href="" />
+  </VdcStorageProfile>
+  <NicQuota> 10 </NicQuota>
+  <NetworkQuota> 10 </NetworkQuota> 
+</CreateVdcParams>
+  ';
+
+  $url .= '/vdcsparams';
+
+  my $ret = $self->post($url,'application/vnd.vmware.admin.createVdcParams+xml',$xml);
+
+  return $ret->[2]->{href} if $ret->[1] == 201;
+  return $ret;
+}
 
 =head2 post($url)
 
