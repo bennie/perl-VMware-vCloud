@@ -5,15 +5,17 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
+    VMware::vCloud - 
+    VMware::API::::vCloud - admin(), org_vdc_create()
     API version information is now read directly from offered versions.
-    Now working with API version v5.1
     Learned variables and Raw responses now attached to $VMware::API::vCloud::self
     When Debug is on, learned variables are displayed on exit.
     
   Improved:
+    Now working with API version v5.1
     Most recent version is used.
     Login URL is now directed by Version response.
-    org_list() now generated in VMware::API::vCloud with caching.
+    VMware::API::vCloud - org_list() now generated with caching.
 
   Fixed:
     Version now included in accept header for authentication.

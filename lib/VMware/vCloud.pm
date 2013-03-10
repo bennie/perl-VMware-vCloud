@@ -79,6 +79,10 @@ sub new {
   return $self;
 }
 
+sub _purge {
+  our $cache->purge();
+}
+
 ### Standard methods
 
 =head2 create_vapp_from_template($name,$vdcid,$tmplid,$netid)
@@ -208,6 +212,7 @@ sub get_org {
 
   my %org;
   $org{description} = $raw_org_data->{Description}->[0];
+  $org{href}        = $raw_org_data->{href};
   $org{name}        = $raw_org_data->{name};
 
   $raw_org_data->{href} =~ /([^\/]+)$/;
@@ -218,8 +223,8 @@ sub get_org {
   for my $link ( @{$raw_org_data->{Link}} ) {
     $link->{type} =~ /^application\/vnd.vmware.vcloud.(\w+)\+xml$/;
     my $type = $1;
-    $link->{href} =~ /([^\/]+)$/;
-    my $id = $1;
+
+    my $id = $link->{href};
     
     next if $type eq 'controlAccess';
     
@@ -379,6 +384,7 @@ sub list_orgs {
   #unless ( defined $orgs ) {
     $orgs = {};
     my $ret = $self->{api}->org_list();
+
     for my $orgname ( keys %{$ret->{Org}} ) {
       warn "Org type of $ret->{Org}->{$orgname}->{type} listed for $orgname\n" unless $ret->{Org}->{$orgname}->{type} eq 'application/vnd.vmware.vcloud.org+xml';
       $orgs->{$orgname} = $ret->{Org}->{$orgname}->{href};

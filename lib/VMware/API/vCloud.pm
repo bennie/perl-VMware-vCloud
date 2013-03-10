@@ -144,24 +144,6 @@ sub DESTROY {
   $self->_debug("Learned variables: \n" . join("\n",@dump));
 }
 
-sub _admin_urls {
-  my $self = shift @_;
-  my $req = HTTP::Request->new( GET =>  $self->{learned}->{url}->{admin} );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  return $self->{learned}->{url}->{admin_actions} if defined $self->{learned}->{url}->{admin_actions};
-
-  my $response = $self->{ua}->request($req);
-  my $parsed = $self->_xml_response($response);
-
-  my $rightreference = $parsed->{RightReferences}->[0]->{RightReference};
-  for my $name ( keys %$rightreference ) {
-    $self->{learned}->{url}->{admin_actions}->{$name} = $rightreference->{$name}->{href};
-  }
-
-  return $self->{learned}->{url}->{admin_actions};
-}
-
 sub _debug {
   my $self = shift @_;
   return undef unless $self->{debug};
@@ -286,11 +268,12 @@ sub login {
   $self->{raw}->{login} = $self->_xml_response($response);
 
   for my $link ( @{$self->{raw}->{login}->{Link}} ) {
-    $self->{learned}->{url}->{admin}     = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vcloud+xml';
-    $self->{learned}->{url}->{entity}    = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.entity+xml';
-    $self->{learned}->{url}->{extension} = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vmwExtension+xml';
-    $self->{learned}->{url}->{orglist}   = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
-    $self->{learned}->{url}->{querylist} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.query.queryList+xml';
+    $self->{learned}->{url}->{admin}         = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vcloud+xml';
+    $self->{learned}->{url}->{entity}        = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.entity+xml';
+    $self->{learned}->{url}->{extensibility} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.apiextensibility+xml';
+    $self->{learned}->{url}->{extension}     = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vmwExtension+xml';
+    $self->{learned}->{url}->{orglist}       = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
+    $self->{learned}->{url}->{query}         = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.query.queryList+xml';
     #die Dumper($self->{raw}->{login}->{Link});
   }
 
@@ -298,6 +281,30 @@ sub login {
 }
 
 ### API methods
+
+=head2 admin()
+
+=cut
+
+sub admin {
+  my $self = shift @_;
+  my $req = HTTP::Request->new( GET =>  $self->{learned}->{url}->{admin} );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  $self->_debug("API: admin()\n") if $self->{debug};
+  return $self->{learned}->{admin} if defined $self->{learned}->{admin};
+
+  my $response = $self->{ua}->request($req);
+  my $parsed = $self->_xml_response($response);
+
+  $self->{learned}->{admin}->{networks} = $parsed->{Networks}->[0]->{Network};
+  $self->{learned}->{admin}->{rights}   = $parsed->{RightReferences}->[0]->{RightReference};
+  $self->{learned}->{admin}->{roles}    = $parsed->{RoleReferences}->[0]->{RoleReference};
+  $self->{learned}->{admin}->{orgs}     = $parsed->{OrganizationReferences}->[0]->{OrganizationReference};
+  $self->{learned}->{admin}->{pvdcs}    = $parsed->{ProviderVdcReferences}->[0]->{ProviderVdcReference};
+
+  return $self->{learned}->{admin};
+}
 
 =head2 catalog_get($catid or $caturl)
 
@@ -440,24 +447,30 @@ sub org_network_create {
   my $xml = '
 <OrgNetwork xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
   <Description>'.$desc.'</Description>
-    <Settings>
-      <IpScope>
-        <Gateway>'.$gateway .'</Gateway>
-        <Netmask>'.$netmask.'</Netmask>
-        <Dns1>'.$dns1.'</Dns1>
-        <Dns2>'.$dns2.'</Dns2>
-        <DnsSuffix>'.$dnssuffix.'</DnsSuffix>
-        <IsEnabled>'.$is_enabled.'</IsEnabled>
-        <IpRanges>
-           <IpRange>
-             <EndAddress>'.$end_ip.'</EndAddress>
-          </IpRange>
-        </IpRanges>
-      </IpScope>
-    </Settings>
-</OrgNetwork>
+   <Configuration>
+      <IpScopes>
+         <IpScope>
+            <IsInherited>false</IsInherited>
+            <Gateway>'.$gateway .'</Gateway>
+            <Netmask>'.$netmask.'</Netmask>
+            <Dns1>'.$dns1.'</Dns1>
+            <Dns2>'.$dns2.'</Dns2>
+            <DnsSuffix>'.$dnssuffix.'</DnsSuffix>
+            <IpRanges>
+               <IpRange>
+                  <StartAddress>'.$start_ip.'</StartAddress>
+                  <EndAddress>'.$end_ip.'</EndAddress>
+               </IpRange>
+            </IpRanges>
+         </IpScope>
+      </IpScopes>
+      <FenceMode>natRouted</FenceMode>
+   </Configuration>
+   <EdgeGateway
+      href="https://vcloud.example.com/api/admin/gateway/2000" />
+   <IsShared>true</IsShared>
+</OrgVdcNetwork>
   ';
-#             <StartAddress>'.$start_ip.'</StartAddress>
 
   $url .= '/networks';
 
@@ -479,6 +492,10 @@ sub org_vdc_create {
   my $name = shift @_;
   my $desc = shift @_;
 
+  my $sp_href   = shift @_;
+  my $np_href   = shift @_;
+  my $pvdc_href = shift @_;
+
   my $allocation_model = 'AllocationVApp';
 
   $self->_debug("API: org_vdc_create()\n") if $self->{debug};
@@ -487,27 +504,37 @@ sub org_vdc_create {
 <CreateVdcParams xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
   <Description>'.$desc.'</Description>
   <AllocationModel>'.$allocation_model.'</AllocationModel>
-  <ComputeCapacity>
-    <Cpu>
-      <Units> MB </Units>
-      <Allocated> 500 </Allocated>
-      <Limit> 1000 </Limit>
-    </Cpu>
-    <Memory>
-      <Units> MB </Units>
-      <Allocated> 1000 </Allocated>
-      <Limit> 2000 </Limit>
-    </Memory>
-  </ComputeCapacity>
-  <IsEnabled> 1 </IsEnabled>
-  <VdcStorageProfile>
-        <Units> MB </Units>
-        <Limit> 100 </Limit>
-        <Default> 1 </Default>
-        <ProviderVdcStorageProfile href="" />
-  </VdcStorageProfile>
-  <NicQuota> 10 </NicQuota>
-  <NetworkQuota> 10 </NetworkQuota> 
+   <ComputeCapacity>
+      <Cpu>
+         <Units>MHz</Units>
+         <Allocated>2048</Allocated>
+         <Limit>2048</Limit>
+      </Cpu>
+      <Memory>
+         <Units>MB</Units>
+         <Allocated>2048</Allocated>
+         <Limit>2048</Limit>
+      </Memory>
+   </ComputeCapacity>
+   <NicQuota>0</NicQuota>
+   <NetworkQuota>100</NetworkQuota>
+   <VdcStorageProfile>
+   <Enabled>true</Enabled>
+      <Units>MB</Units>
+      <Limit>20480</Limit>
+      <Default>true</Default>
+      <ProviderVdcStorageProfile href="'.$sp_href.'" />
+   </VdcStorageProfile>
+   <ResourceGuaranteedMemory>1</ResourceGuaranteedMemory>
+   <ResourceGuaranteedCpu>1</ResourceGuaranteedCpu>
+   <VCpuInMhz>2048</VCpuInMhz>
+   <IsThinProvision>false</IsThinProvision>
+   <NetworkPoolReference
+      href="'.$np_href.'"/>
+   <ProviderVdcReference
+      name="Main Provider"
+      href="'.$pvdc_href.'" />
+   <UsesFastProvisioning>true</UsesFastProvisioning>
 </CreateVdcParams>
   ';
 
@@ -548,6 +575,29 @@ sub post {
   my @ret = ( $response->message, $response->code, $data );
 
   return wantarray ? @ret : \@ret;
+}
+
+=head2 pdvc_get()
+
+=cut
+
+sub pvdc_get {
+  my $self = shift @_;
+  my $tmpl = shift @_;
+  my $req;
+
+  $self->_debug("API: pvdc_get($tmpl)\n") if $self->{debug};
+  
+  if ( $tmpl =~ /^[^\/]+$/ ) {
+    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'tmpl/' . $tmpl );
+  } else {
+    $req = HTTP::Request->new( GET =>  $tmpl );
+  }
+
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
 }
 
 =head2 template_get($templateid or $templateurl)
@@ -598,6 +648,23 @@ sub vdc_get {
     $req = HTTP::Request->new( GET =>  $vdc );
   }
 
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+=head2 vdc_list()
+
+Returns the full list of available VDCs.
+
+=cut
+
+sub vdc_list {
+  my $self = shift @_;
+  $self->_debug("API: vdc_list()\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{admin} . 'vdcs/query' );
   $req->header( Accept => $self->{learned}->{accept_header} );
 
   my $response = $self->{ua}->request($req);
