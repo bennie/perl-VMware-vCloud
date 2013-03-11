@@ -85,6 +85,51 @@ sub _purge {
 
 ### Standard methods
 
+=head3 create_external_network($name,$gateway,$netmask,$dns1,$dns2,$suffix,$vimref,$moref,$objtype)
+
+=cut
+
+sub create_external_network {
+  my $self = shift @_;
+  my $conf = shift @_;
+
+  my $xml = '
+<vmext:VMWExternalNetwork
+   xmlns:vmext="http://www.vmware.com/vcloud/extension/v1.5"
+   xmlns:vcloud="http://www.vmware.com/vcloud/v1.5"
+   name="'.$conf->{name}.'"
+   type="application/vnd.vmware.admin.vmwexternalnet+xml">
+   <vcloud:Description>ExternalNet</vcloud:Description>
+   <vcloud:Configuration>
+      <vcloud:IpScopes>
+         <vcloud:IpScope>
+            <vcloud:IsInherited>false</vcloud:IsInherited>
+            <vcloud:Gateway>'.$conf->{gateway}.'</vcloud:Gateway>
+            <vcloud:Netmask>'.$conf->{subnet}.'</vcloud:Netmask>
+            <vcloud:Dns1>'.$conf->{dns1}.'</vcloud:Dns1>
+            <vcloud:Dns2>'.$conf->{dns2}.'</vcloud:Dns2>
+            <vcloud:DnsSuffix>'.$conf->{suffix}.'</vcloud:DnsSuffix>
+            <vcloud:IpRanges>
+               <vcloud:IpRange>
+                  <vcloud:StartAddress>'.$conf->{ipstart}.'</vcloud:StartAddress>
+                  <vcloud:EndAddress>'.$conf->{ipend}.'</vcloud:EndAddress>
+               </vcloud:IpRange>
+            </vcloud:IpRanges>
+         </vcloud:IpScope>
+      </vcloud:IpScopes>
+      <vcloud:FenceMode>isolated</vcloud:FenceMode>
+   </vcloud:Configuration>
+   <vmext:VimPortGroupRef>
+      <vmext:VimServerRef
+         href="'.$conf->{vimserver}.'" />
+      <vmext:MoRef>'.$conf->{mo_ref}.'</vmext:MoRef>
+      <vmext:VimObjectType>'.$conf->{mo_type}.'</vmext:VimObjectType>
+   </vmext:VimPortGroupRef>
+</vmext:VMWExternalNetwork>';
+  
+  return $self->{api}->post('https://vcloud.kovarus.com/api/admin/extension/externalnets','application/vnd.vmware.admin.vmwexternalnet+xml',$xml); 
+}
+
 =head2 create_vapp_from_template($name,$vdcid,$tmplid,$netid)
 
 Given a name, VDC, template and network, instantiate the template with the given

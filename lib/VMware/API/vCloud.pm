@@ -26,7 +26,7 @@ This module provides a Perl interface to VMware's vCloud REST API.
 
 In general, for most API calls, they are in the structure of the conecptual
 name followed by an underscore and then the REST action. (IE: org_get() for
-retrieveing an org, and org_post() for creating one.)
+retrieving an org, and org_post() for creating one.)
 
 =head1 RETURNED VALUES
 
@@ -141,7 +141,7 @@ sub DESTROY {
   my $self = shift @_;
   my @dump = split "\n", Dumper($self->{learned});
   pop @dump; shift @dump;
-  $self->_debug("Learned variables: \n" . join("\n",@dump));
+  #$self->_debug("Learned variables: \n" . join("\n",@dump));
 }
 
 sub _debug {
@@ -176,10 +176,8 @@ sub _fault {
 }
 
 sub _regenerate {
-  my $self = shift @_;
-  
+  my $self = shift @_;  
   $self->{ua} = LWP::UserAgent->new;
-  #$self->{ua}->cookie_jar({});
 
   $self->{api_version} = $self->api_version();
   $self->_debug("API Version: $self->{api_version}");
@@ -193,6 +191,7 @@ sub _xml_response {
   my $response = shift @_;
   
   if ( $response->is_success ) {
+    return undef unless $response->content;
     my $data = XMLin( $response->content, ForceArray => 1 );
     return $data;
   } else {
@@ -206,7 +205,8 @@ sub _xml_response {
 
 =head2 api_version
 
-This call queries the server for the current version of the API supported. It is implicitly called when library is instanced.
+This call queries the server for the current version of the API supported. 
+It is implicitly called when library is instanced.
 
 =cut
 
@@ -240,7 +240,9 @@ sub api_version {
 
 =head2 login
 
-This call takes the username and password provided and creates an authentication token from the server. If successful, it returns the list of organizations the authenticated user may access.
+This call takes the username and password provided and creates an authentication 
+token from the server. If successful, it returns the list of organizations the 
+authenticated user may access.
 
 =cut
 
@@ -306,6 +308,55 @@ sub admin {
   return $self->{learned}->{admin};
 }
 
+=head2 admin_extension_get()
+
+=cut
+
+sub admin_extension_get {
+  my $self = shift @_;
+  $self->_debug("API: admin_extension_get()\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{admin} . 'extension' );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);  
+}
+
+=head2 admin_extension_vimServer_get()
+
+=cut
+
+sub admin_extension_vimServer_get {
+  my $self = shift @_;
+  my $url  = shift @_;
+  
+  $self->_debug("API: admin_extension_vimServer_get()\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);  
+}
+
+
+=head2 admin_extension_vimServerReferences_get()
+
+=cut
+
+sub admin_extension_vimServerReferences_get {
+  my $self = shift @_;
+  $self->_debug("API: admin_extension_vimServerReferences_get()\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{admin} . 'extension/vimServerReferences' );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);  
+}
+
+
 =head2 catalog_get($catid or $caturl)
 
 As a parameter, this method thakes the raw numeric id of the catalog or the full URL detailed for the catalog from the login catalog.
@@ -341,20 +392,16 @@ Create an organization?
 
 sub org_create {
   my $self = shift @_;
-  my $name = shift @_;
-  my $desc = shift @_;
-  my $fullname = shift @_;
-  my $is_enabled = shift @_;
-  my $vdc_url = shift @_;
+  my $conf = shift @_;
 
   $self->_debug("API: org_create()\n") if $self->{debug};
   my $url = $self->{learned}->{url}->{admin} . 'orgs';
-
+  
   my $xml = '
-<AdminOrg xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
-  <Description>'.$desc.'</Description>
-  <FullName>'.$fullname.'</FullName>
-  <IsEnabled>'.$is_enabled.'</IsEnabled>  
+<AdminOrg xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$conf->{name}.'">
+  <Description>'.$conf->{desc}.'</Description>
+  <FullName>'.$conf->{fullname}.'</FullName>
+  <IsEnabled>'.$conf->{is_enabled}.'</IsEnabled>  
     <Settings>
         <OrgGeneralSettings>
             <CanPublishCatalogs>true</CanPublishCatalogs>
@@ -365,7 +412,7 @@ sub org_create {
         </OrgGeneralSettings>
     </Settings>
     <Vdcs>
-        <Vdc href="'.$vdc_url.'"/>
+        <Vdc href="'.$conf->{pvdc}.'"/>
     </Vdcs>  
 </AdminOrg>
 ';
@@ -496,7 +543,7 @@ sub org_vdc_create {
   my $np_href   = shift @_;
   my $pvdc_href = shift @_;
 
-  my $allocation_model = 'AllocationVApp';
+  my $allocation_model = 'AllocationPool';
 
   $self->_debug("API: org_vdc_create()\n") if $self->{debug};
   
@@ -544,6 +591,44 @@ sub org_vdc_create {
 
   return $ret->[2]->{href} if $ret->[1] == 201;
   return $ret;
+}
+
+=head2 delete()
+
+=cut 
+
+sub delete {
+  my $self = shift @_;
+  my $url  = shift @_;
+  $self->_debug("API: delete($url)\n") if $self->{debug};
+  my $req = HTTP::Request->new( DELETE => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+=head2 get()
+
+=cut 
+
+sub get {
+  my $self = shift @_;
+  my $url  = shift @_;
+  $self->_debug("API: get($url)\n") if $self->{debug};
+  my $req = HTTP::Request->new( GET => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+sub getraw {
+  my $self = shift @_;
+  my $url  = shift @_;
+  $self->_debug("API: get($url)\n") if $self->{debug};
+  my $req = HTTP::Request->new( GET => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $response->content;
 }
 
 =head2 post($url)
@@ -751,19 +836,20 @@ dearly love a few changes, that might help things:
 
 =head1 SEE ALSO
 
- VMware vCloud Director
-  http://www.vmware.com/products/vcloud/
+ VMware vCloud Director Publications
+  http://www.vmware.com/support/pubs/vcd_pubs.html
+  http://pubs.vmware.com/vcd-51/index.jsp
 
- VMware vCloud API Specification v1.0
-  http://communities.vmware.com/docs/DOC-12464
-
- VMware vCloud API Programming Guide v1.0
-  http://communities.vmware.com/docs/DOC-12463
+ VMware vCloud API Programming Guide v5.1
+  http://pubs.vmware.com/vcd-51/topic/com.vmware.vcloud.api.doc_51/GUID-86CA32C2-3753-49B2-A471-1CE460109ADB.html
   
- vCloud API and Admin API v1.0 schema definition files
-  http://communities.vmware.com/docs/DOC-13564
+ vCloud API and Admin API v5.1 schema definition files
+  http://pubs.vmware.com/vcd-51/topic/com.vmware.vcloud.api.reference.doc_51/about.html
   
  VMware vCloud API Communities
   http://communities.vmware.com/community/vmtn/developer/forums/vcloudapi
+
+ VMware vCloud API Specification v1.5
+  http://www.vmware.com/support/vcd/doc/rest-api-doc-1.5-html/
 
 =cut
