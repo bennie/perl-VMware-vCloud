@@ -397,6 +397,16 @@ sub org_create {
   $self->_debug("API: org_create()\n") if $self->{debug};
   my $url = $self->{learned}->{url}->{admin} . 'orgs';
   
+  my $vdcs;  
+  if ( defined $conf->{pvdc} and ref $conf->{pvdc} ) {
+    for my $pvdc (@{$conf->{pvdc}}) {
+      $vdcs .= '<Vdc href="'.$pvdc.'"/> ';
+    }
+  } elsif ( defined $conf->{pvdc} ) {
+      $vdcs = '<Vdc href="'.$conf->{pvdc}.'"/> ';
+  }
+  $vdcs .= "\n";
+  
   my $xml = '
 <AdminOrg xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$conf->{name}.'">
   <Description>'.$conf->{desc}.'</Description>
@@ -412,7 +422,7 @@ sub org_create {
         </OrgGeneralSettings>
     </Settings>
     <Vdcs>
-        <Vdc href="'.$conf->{pvdc}.'"/>
+      '.$vdcs.'
     </Vdcs>  
 </AdminOrg>
 ';
@@ -540,6 +550,8 @@ sub org_vdc_create {
 
   $self->_debug("API: org_vdc_create()\n") if $self->{debug};
   
+  my $networkpool = $conf->{np_href} ? '<NetworkPoolReference href="'.$conf->{np_href}.'"/>' : '';
+  
   my $xml = '
 <CreateVdcParams xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$conf->{name}.'">
   <Description>'.$conf->{desc}.'</Description>
@@ -569,8 +581,7 @@ sub org_vdc_create {
    <ResourceGuaranteedCpu>'.$conf->{ResourceGuaranteedCpu}.'</ResourceGuaranteedCpu>
    <VCpuInMhz>'.$conf->{VCpuInMhz}.'</VCpuInMhz>
    <IsThinProvision>'.$conf->{is_thin_provision}.'</IsThinProvision>
-   <NetworkPoolReference
-      href="'.$conf->{np_href}.'"/>
+   '.$networkpool.'
    <ProviderVdcReference
       name="'.$conf->{pvdc_name}.'"
       href="'.$conf->{pvdc_href}.'" />

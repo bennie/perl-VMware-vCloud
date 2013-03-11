@@ -127,7 +127,7 @@ sub create_external_network {
    </vmext:VimPortGroupRef>
 </vmext:VMWExternalNetwork>';
   
-  return $self->{api}->post('https://vcloud.kovarus.com/api/admin/extension/externalnets','application/vnd.vmware.admin.vmwexternalnet+xml',$xml); 
+  return $self->{api}->post($self->{api}->{learned}->{url}->{admin}.'extension/externalnets','application/vnd.vmware.admin.vmwexternalnet+xml',$xml); 
 }
 
 =head2 create_vapp_from_template($name,$vdcid,$tmplid,$netid)
