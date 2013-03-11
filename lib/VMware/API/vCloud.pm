@@ -536,52 +536,45 @@ Create an org network
 sub org_vdc_create {
   my $self = shift @_;
   my $url  = shift @_;
-  my $name = shift @_;
-  my $desc = shift @_;
-
-  my $sp_href   = shift @_;
-  my $np_href   = shift @_;
-  my $pvdc_href = shift @_;
-
-  my $allocation_model = 'AllocationPool';
+  my $conf = shift @_;
 
   $self->_debug("API: org_vdc_create()\n") if $self->{debug};
   
   my $xml = '
-<CreateVdcParams xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
-  <Description>'.$desc.'</Description>
-  <AllocationModel>'.$allocation_model.'</AllocationModel>
+<CreateVdcParams xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$conf->{name}.'">
+  <Description>'.$conf->{desc}.'</Description>
+  <AllocationModel>'.$conf->{allocation_model}.'</AllocationModel>
    <ComputeCapacity>
       <Cpu>
-         <Units>MHz</Units>
-         <Allocated>2048</Allocated>
-         <Limit>2048</Limit>
+         <Units>'.$conf->{cpu_unit}.'</Units>
+         <Allocated>'.$conf->{cpu_alloc}.'</Allocated>
+         <Limit>'.$conf->{cpu_limit}.'</Limit>
       </Cpu>
       <Memory>
-         <Units>MB</Units>
-         <Allocated>2048</Allocated>
-         <Limit>2048</Limit>
+         <Units>'.$conf->{mem_unit}.'</Units>
+         <Allocated>'.$conf->{mem_alloc}.'</Allocated>
+         <Limit>'.$conf->{mem_limit}.'</Limit>
       </Memory>
    </ComputeCapacity>
-   <NicQuota>0</NicQuota>
-   <NetworkQuota>100</NetworkQuota>
+   <NicQuota>'.$conf->{nic_quota}.'</NicQuota>
+   <NetworkQuota>'.$conf->{net_quota}.'</NetworkQuota>
    <VdcStorageProfile>
-   <Enabled>true</Enabled>
-      <Units>MB</Units>
-      <Limit>20480</Limit>
+      <Enabled>'.$conf->{sp_enabled}.'</Enabled>
+      <Units>'.$conf->{sp_units}.'</Units>
+      <Limit>'.$conf->{sp_limit}.'</Limit>
       <Default>true</Default>
-      <ProviderVdcStorageProfile href="'.$sp_href.'" />
+      <ProviderVdcStorageProfile href="'.$conf->{sp_href}.'" />
    </VdcStorageProfile>
-   <ResourceGuaranteedMemory>1</ResourceGuaranteedMemory>
-   <ResourceGuaranteedCpu>1</ResourceGuaranteedCpu>
-   <VCpuInMhz>2048</VCpuInMhz>
-   <IsThinProvision>false</IsThinProvision>
+   <ResourceGuaranteedMemory>'.$conf->{ResourceGuaranteedMemory}.'</ResourceGuaranteedMemory>
+   <ResourceGuaranteedCpu>'.$conf->{ResourceGuaranteedCpu}.'</ResourceGuaranteedCpu>
+   <VCpuInMhz>'.$conf->{VCpuInMhz}.'</VCpuInMhz>
+   <IsThinProvision>'.$conf->{is_thin_provision}.'</IsThinProvision>
    <NetworkPoolReference
-      href="'.$np_href.'"/>
+      href="'.$conf->{np_href}.'"/>
    <ProviderVdcReference
-      name="Main Provider"
-      href="'.$pvdc_href.'" />
-   <UsesFastProvisioning>true</UsesFastProvisioning>
+      name="'.$conf->{pvdc_name}.'"
+      href="'.$conf->{pvdc_href}.'" />
+   <UsesFastProvisioning>'.$conf->{use_fast_provisioning}.'</UsesFastProvisioning>
 </CreateVdcParams>
   ';
 
