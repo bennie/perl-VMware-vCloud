@@ -486,21 +486,11 @@ Create an org network
 sub org_network_create {
   my $self = shift @_;
   my $url  = shift @_;
-  my $name = shift @_;
-  my $desc = shift @_;
-
-  my $gateway    = shift @_;
-  my $netmask    = shift @_;
-  my $dns1       = shift @_;
-  my $dns2       = shift @_;
-  my $dnssuffix  = shift @_;
-  my $is_enabled = shift @_;
-
-  my $start_ip = shift @_;
-  my $end_ip   = shift @_;
-
+  my $conf = shift @_;
+  
   $self->_debug("API: org_network_create()\n") if $self->{debug};
   
+=head3 remove
   my $xml = '
 <OrgNetwork xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
   <Description>'.$desc.'</Description>
@@ -528,10 +518,21 @@ sub org_network_create {
    <IsShared>true</IsShared>
 </OrgVdcNetwork>
   ';
+=cut
+  my $xml = '<OrgVdcNetwork
+   name="'.$conf->{name}.'"
+   xmlns="http://www.vmware.com/vcloud/v1.5">
+   <Description>'.$conf->{desc}.'</Description>
+   <Configuration>
+      <ParentNetwork
+         href="'.$conf->{parent_net_href}.'" />
+      <FenceMode>bridged</FenceMode>
+   </Configuration>
+</OrgVdcNetwork>';
 
   $url .= '/networks';
 
-  my $ret = $self->post($url,'application/vnd.vmware.admin.orgNetwork+xml',$xml);
+  my $ret = $self->post($url,'application/vnd.vmware.vcloud.orgVdcNetwork+xml',$xml);
 
   return $ret->[2]->{href} if $ret->[1] == 201;
   return $ret;
@@ -552,6 +553,27 @@ sub org_vdc_create {
   
   my $networkpool = $conf->{np_href} ? '<NetworkPoolReference href="'.$conf->{np_href}.'"/>' : '';
   
+  my $sp;
+  if ( defined $conf->{sp} and ref $conf->{sp} ) {
+    for my $ref ( @{$conf->{sp}} ) {
+      $sp .= '<VdcStorageProfile>
+      <Enabled>'.$ref->{sp_enabled}.'</Enabled>
+      <Units>'.$ref->{sp_units}.'</Units>
+      <Limit>'.$ref->{sp_limit}.'</Limit>
+      <Default>'.$ref->{sp_default}.'</Default>
+      <ProviderVdcStorageProfile href="'.$ref->{sp_href}.'" />
+   </VdcStorageProfile>';
+	}
+  } elsif ( defined $conf->{sp_enabled} ) {
+    $sp = '<VdcStorageProfile>
+      <Enabled>'.$conf->{sp_enabled}.'</Enabled>
+      <Units>'.$conf->{sp_units}.'</Units>
+      <Limit>'.$conf->{sp_limit}.'</Limit>
+      <Default>'.$conf->{sp_default}.'</Default>
+      <ProviderVdcStorageProfile href="'.$conf->{sp_href}.'" />
+   </VdcStorageProfile>';
+  }
+   
   my $xml = '
 <CreateVdcParams xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$conf->{name}.'">
   <Description>'.$conf->{desc}.'</Description>
@@ -570,13 +592,7 @@ sub org_vdc_create {
    </ComputeCapacity>
    <NicQuota>'.$conf->{nic_quota}.'</NicQuota>
    <NetworkQuota>'.$conf->{net_quota}.'</NetworkQuota>
-   <VdcStorageProfile>
-      <Enabled>'.$conf->{sp_enabled}.'</Enabled>
-      <Units>'.$conf->{sp_units}.'</Units>
-      <Limit>'.$conf->{sp_limit}.'</Limit>
-      <Default>true</Default>
-      <ProviderVdcStorageProfile href="'.$conf->{sp_href}.'" />
-   </VdcStorageProfile>
+   '.$sp.'
    <ResourceGuaranteedMemory>'.$conf->{ResourceGuaranteedMemory}.'</ResourceGuaranteedMemory>
    <ResourceGuaranteedCpu>'.$conf->{ResourceGuaranteedCpu}.'</ResourceGuaranteedCpu>
    <VCpuInMhz>'.$conf->{VCpuInMhz}.'</VCpuInMhz>
