@@ -5,14 +5,17 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
-    VMware::vCloud - 
-    VMware::API::::vCloud - admin(), org_vdc_create()
+    VMware::vCloud - create_external_network()
+    VMware::API::::vCloud - admin(), admin_extension_get(), 
+      admin_extension_vimServer_get(), delete(), get_raw(), org_create(), 
+      org_list(), org_network_create(), org_vdc_create(), pvdc_get(), vdc_list()
     API version information is now read directly from offered versions.
     Learned variables and Raw responses now attached to $VMware::API::vCloud::self
     When Debug is on, learned variables are displayed on exit.
     
   Improved:
     Now working with API version v5.1
+    Removed the 1.0 and 1.5 schema from the MANIFEST until necessary.
     Most recent version is used.
     Login URL is now directed by Version response.
     VMware::API::vCloud - org_list() now generated with caching.

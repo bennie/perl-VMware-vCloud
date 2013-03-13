@@ -22,13 +22,10 @@ VMware::API::vCloud - The VMware vCloud API
 
 =head1 DESCRIPTION
 
-This module provides a Perl interface to VMware's vCloud REST API.
+This module provides a bare interface to VMware's vCloud REST API.
 
-In general, for most API calls, they are in the structure of the conecptual
-name followed by an underscore and then the REST action. (IE: org_get() for
-retrieving an org, and org_post() for creating one.)
-
-=head1 RETURNED VALUES
+VMware::vCloud is designed for high level usage with vCloud Director. This 
+module, however, provides a more low-level access to the REST interface.
 
 Responses received from vCloud are in XML. They are translated via XML::Simple
 with ForceArray set for consistency in nesting. This is the object returned.
@@ -36,12 +33,15 @@ with ForceArray set for consistency in nesting. This is the object returned.
 Aside from the translation of XML into a perl data structure, no further 
 alteration is performed on the data.
 
-=head1 PERL MODULE METHODS
+HTTP errors are automatically parsed and die() is called. If you need to perform
+a dangerous action, do so in an eval block and evaluate $@.
+
+=head1 OBJECT METHODS
 
 These methods are not API calls. They represent the methods that create
 this module as a "wrapper" for the vCloud API.
 
-=head2 new
+=head2 new()
 
 This method creates the vCloud object.
 
@@ -60,12 +60,6 @@ U<Arguments>
 =back
 
 =cut
-
-#      $self->{raw}->{version} - Full data on the API version from login (populated on api_version() call)
-#      $self->{raw}->{login}
-#      $self->{learned}->{version} - API version number (populated on api_version() call)
-#      $self->{learned}->{url}->{login} - Authentication URL (populated on api_version() call)
-# $self->{learned}->{url}->{orglist}
 
 sub new {
   my $class = shift @_;
@@ -93,7 +87,7 @@ sub new {
   return $self;
 }
 
-=head2 config
+=head2 config()
 
   $vcd->config( debug => 1 );
 
@@ -136,6 +130,12 @@ sub config {
 }
 
 ### Internal methods
+
+# $self->{raw}->{version} - Full data on the API version from login (populated on api_version() call)
+# $self->{raw}->{login}
+# $self->{learned}->{version} - API version number (populated on api_version() call)
+# $self->{learned}->{url}->{login} - Authentication URL (populated on api_version() call)
+# $self->{learned}->{url}->{orglist}
 
 sub DESTROY {
   my $self = shift @_;
@@ -199,11 +199,95 @@ sub _xml_response {
   }
 }
 
-### Public methods
+=head1 REST METHODS
 
-=head1 PUBLIC API METHODS
+These are direct access to the REST web methods.
 
-=head2 api_version
+=head2 delete($url)
+
+Performs a DELETE action on the given URL, and returns the parsed XML response.
+
+=cut 
+
+sub delete {
+  my $self = shift @_;
+  my $url  = shift @_;
+  $self->_debug("API: delete($url)\n") if $self->{debug};
+  my $req = HTTP::Request->new( DELETE => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+=head2 get($url)
+
+Performs a GET action on the given URL, and returns the parsed XML response.
+
+=cut 
+
+sub get {
+  my $self = shift @_;
+  my $url  = shift @_;
+  $self->_debug("API: get($url)\n") if $self->{debug};
+  my $req = HTTP::Request->new( GET => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+=head2 get_raw($url)
+
+Performs a GET action on the given URL, and returns the unparsed HTTP::Request object.
+
+=cut 
+
+sub get_raw {
+  my $self = shift @_;
+  my $url  = shift @_;
+  $self->_debug("API: get($url)\n") if $self->{debug};
+  my $req = HTTP::Request->new( GET => $url );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+  my $response = $self->{ua}->request($req);
+  return $response->content;
+}
+
+=head2 post($url,$type,$content)
+
+Performs a POST action on the given URL, and returns the parsed XML response.
+
+The optional value for $type is set as the Content Type for the transaction. 
+
+The optional value for $content is used as the content of the post.
+
+=cut
+
+sub post {
+  my $self = shift @_;
+  my $href = shift @_;
+
+  my $type = shift @_;
+  my $content = shift @_;
+
+  $self->_debug("API: post($href)\n") if $self->{debug};
+  my $req = HTTP::Request->new( POST => $href );
+
+  $req->content($content) if $content;
+  $req->content_type($type) if $type;
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  my $data = $self->_xml_response($response);
+
+  my @ret = ( $response->message, $response->code, $data );
+
+  return wantarray ? @ret : \@ret;
+}
+
+=head1 API SHORTHAND METHODS
+
+=head2 api_version 
+
+* Relative URL: /api/versions
 
 This call queries the server for the current version of the API supported. 
 It is implicitly called when library is instanced.
@@ -240,9 +324,13 @@ sub api_version {
 
 =head2 login
 
-This call takes the username and password provided and creates an authentication 
-token from the server. If successful, it returns the list of organizations the 
-authenticated user may access.
+* Relative URL: dynamic, but usually: /login/
+
+This call takes the username and password provided in the config() and creates
+an authentication  token from the server. If successful, it returns the login
+data returned by the server.
+
+In the 5.1 version of the API, this is a list of several access URLs.
 
 =cut
 
@@ -286,6 +374,11 @@ sub login {
 
 =head2 admin()
 
+* Relative URL: dynamic admin URL, usually /api/admin/
+
+Parses the admin API URL to build and return a hash reference of key URLs for
+the API.
+
 =cut
 
 sub admin {
@@ -309,6 +402,8 @@ sub admin {
 }
 
 =head2 admin_extension_get()
+
+* Relative URL: dynamic admin URL followed by "/extension"
 
 =cut
 
@@ -477,9 +572,22 @@ sub org_list {
   return $self->_xml_response($response);
 }
 
-=head2 org_network_create($name,$desc,$gateway,$netmask,$dns1,$dns2,$dnssuffix,$is_enabled,$start_ip,$end_ip)
+=head2 org_network_create($url,$conf)
 
 Create an org network
+
+The conf hash reference can contain:
+
+* name,
+* desc,
+* gateway,
+* netmask,
+* dns1,
+* dns2,
+* dnssuffix,
+* is_enabled,
+* start_ip,
+* end_ip)
 
 =cut
 
@@ -538,9 +646,36 @@ sub org_network_create {
   return $ret;
 }
 
-=head2 org_network_create($name,$desc,$gateway,$netmask,$dns1,$dns2,$dnssuffix,$is_enabled,$start_ip,$end_ip)
+=head2 org_vdc_create($url,$conf)
 
-Create an org network
+Create an org VDC
+
+The conf hash reference can contain:
+
+* name,
+* desc,
+* np_href,
+* sp_enabled,
+* sp_units,
+* sp_limit,
+* sp_default,
+* sp_href,
+* allocation_model,
+* cpu_unit
+* cpu_alloc
+* cpu_limit
+* mem_unit
+* mem_alloc
+* mem_limit
+* nic_quota
+* net_quota
+* ResourceGuaranteedMemory
+* ResourceGuaranteedCpu
+* VCpuInMhz
+* is_thin_provision
+* pvdc_name
+* pvdc_href
+* use_fast_provisioning
 
 =cut
 
@@ -611,75 +746,6 @@ sub org_vdc_create {
 
   return $ret->[2]->{href} if $ret->[1] == 201;
   return $ret;
-}
-
-=head2 delete()
-
-=cut 
-
-sub delete {
-  my $self = shift @_;
-  my $url  = shift @_;
-  $self->_debug("API: delete($url)\n") if $self->{debug};
-  my $req = HTTP::Request->new( DELETE => $url );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
-}
-
-=head2 get()
-
-=cut 
-
-sub get {
-  my $self = shift @_;
-  my $url  = shift @_;
-  $self->_debug("API: get($url)\n") if $self->{debug};
-  my $req = HTTP::Request->new( GET => $url );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
-}
-
-sub getraw {
-  my $self = shift @_;
-  my $url  = shift @_;
-  $self->_debug("API: get($url)\n") if $self->{debug};
-  my $req = HTTP::Request->new( GET => $url );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-  my $response = $self->{ua}->request($req);
-  return $response->content;
-}
-
-=head2 post($url)
-
-Performs the requested URL post to the server.
-
-It returns an array or arraref with three items: returned message, returned
-numeric code, and a hashref of the full XML data returned.
-
-=cut
-
-sub post {
-  my $self = shift @_;
-  my $href = shift @_;
-
-  my $type = shift @_;
-  my $content = shift @_;
-
-  $self->_debug("API: post($href)\n") if $self->{debug};
-  my $req = HTTP::Request->new( POST => $href );
-
-  $req->content($content) if $content;
-  $req->content_type($type) if $type;
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  my $data = $self->_xml_response($response);
-
-  my @ret = ( $response->message, $response->code, $data );
-
-  return wantarray ? @ret : \@ret;
 }
 
 =head2 pdvc_get()
