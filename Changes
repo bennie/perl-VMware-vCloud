@@ -12,7 +12,7 @@ VERSIONTAG DATETAG
 
   Improved:
     VMware::vCloud - get_org() - now returns hash or hashref depending on context.
-    VMware::vCloud - get_org() - Improved POD.
+    VMware::vCloud - Improved and reorganized POD.
 
 2.19 2013/03/13
 
