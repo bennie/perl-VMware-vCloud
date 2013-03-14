@@ -26,6 +26,12 @@ VMware::vCloud - VMware vCloud Director
 
 This module provides a Perl interface to VMware's vCloud Director.
 
+It's intention is to provide a high-level perl-style interface to vCloud 
+Director actions.
+
+If you are looking for a direct and low-level access to the vCloud API, you may 
+want to look at VMware::API::vCloud, which is packaged and used by this module.
+
 =head1 EXAMPLE SCRIPTS
 
 Included in the distribution of this module are several example scripts. 
@@ -826,6 +832,21 @@ sub webclienturl {
 1;
 
 __END__
+
+=head1 NOTES
+
+=head2 ID VERSUS HREF
+
+Tl;DR - Use HREFs and not IDs.
+
+Internally, objects are identified in the vCloud Director API via either an
+UUID or a HREF that references that object.
+
+According to the API documentation, (as of 5.1) UUIDs are not guaranteed to 
+always be consistent between connections, but HREFs are considered permanent.
+
+Consequently, it is considered a best practice to use HREFs as the unique 
+identifier of an object. This module implements this best practice.
 
 =head1 VERSION
 
