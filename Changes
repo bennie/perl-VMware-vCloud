@@ -5,8 +5,18 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
+	VMware::vCloud - delete_org(), delete_org_network(), delete_vdc(), 
+	  disable_org(), disable_vdc(), enable_org(), enable_vdc(), purge()
+
+  Improved:
+    VMware::vCloud - get_org() - now returns hash or hashref depending on context.
+    VMware::vCloud - get_org() - Improved POD.
+
+2.19 2013/03/13
+
+  Added:
     VMware::vCloud - create_external_network()
-    VMware::API::::vCloud - admin(), admin_extension_get(), 
+    VMware::API::vCloud - admin(), admin_extension_get(), 
       admin_extension_vimServer_get(), delete(), get_raw(), org_create(), 
       org_list(), org_network_create(), org_vdc_create(), pvdc_get(), vdc_list()
     API version information is now read directly from offered versions.
