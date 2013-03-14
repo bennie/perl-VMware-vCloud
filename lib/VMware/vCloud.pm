@@ -79,6 +79,19 @@ sub new {
   return $self;
 }
 
+=head2 debug(1|0)
+
+This turns debugging on and off programatically. An argument of '1' for debugging, '0'
+for no debugging.
+
+=cut
+
+sub debug {
+  my $self = shift @_;
+  my $val  = shift @_;
+  $self->{api}->{debug} = $val;
+}
+
 =head2 login()
 
 This method is deprecated and will be removed in later releases.
@@ -354,6 +367,16 @@ sub list_templates {
 
 =head1 ORG METHODS
 
+=head2 create_org(\%conf)
+
+=cut
+
+sub create_org {
+  my $self = shift @_;
+  my $conf = shift @_;
+  return $self->{api}->org_create($conf);
+}
+
 =head2 delete_org($org_href)
 
 Given the org HREF, call a delete on it.
@@ -423,7 +446,7 @@ sub get_org {
   my $id   = shift @_;
 
   my $org = our $cache->get('get_org:'.$id);
-  return %$org if defined $org;
+  return ( wantarray ? %$org : $org ) if defined $org;
   
   my $raw_org_data = $self->{api}->org_get($id);
 
@@ -478,6 +501,17 @@ sub list_orgs {
 }
 
 =head1 ORG VDC METHODS
+
+=head2 create_vdc($org_url,$conf)
+
+=cut
+
+sub create_vdc {
+  my $self = shift @_;
+  my $href = shift @_;
+  my $conf = shift @_;
+  return $self->{api}->org_vdc_create($href,$conf);
+}  
 
 =head2 delete_vdc($vdc_href);
 
@@ -588,7 +622,32 @@ sub list_vdcs {
   return wantarray ? %$vdcs : $vdcs;
 }
 
+=head1 PROVIDER VDC METHODS
+
+=head2 get_pvdc($pvdc_href)
+
+Returns a hashref of the information on the PVDC
+
+=cut
+
+sub get_pvdc {
+  my $self = shift @_;
+  my $href = shift @_;
+  return $self->{api}->pvdc_get($href);
+}
+
 =head1 NETWORK METHODS
+
+=head2 create_org_network 
+
+=cut
+
+sub create_org_network {
+  my $self = shift @_;
+  my $href = shift @_;
+  my $conf = shift @_;
+  return $self->{api}->org_network_create($href,$conf);
+}
 
 =head2 list_networks() | list_networks($vdcid)
 
@@ -624,6 +683,17 @@ sub list_networks {
 }
 
 =head1 ADMINISTRATIVE METHODS
+
+=head3 admin_urls()
+
+Returns the list of administrative action URLs available to the user.
+
+=cut
+
+sub admin_urls {
+  my $self = shift @_;
+  return $self->{api}->admin();
+}
 
 =head3 create_external_network($name,$gateway,$netmask,$dns1,$dns2,$suffix,$vimref,$moref,$objtype)
 
@@ -668,6 +738,89 @@ sub create_external_network {
 </vmext:VMWExternalNetwork>';
   
   return $self->{api}->post($self->{api}->{learned}->{url}->{admin}.'extension/externalnets','application/vnd.vmware.admin.vmwexternalnet+xml',$xml); 
+}
+
+=head3 extensions()
+
+Returns the data structure for the admin extensions available.
+
+=cut
+
+sub extensions {
+  my $self = shift @_;
+  return $self->{api}->admin_extension_get();
+}
+
+=head3 list_external_networks()
+
+Returns a hash or hasref of all available external networks.
+
+=cut
+
+sub list_external_networks {
+  my $self = shift @_;  
+  my $extensions = $self->extensions();
+
+  my $extnet_url;
+  for my $link ( @{$extensions->{'vcloud:Link'}} ) {
+    $extnet_url = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vmwExternalNetworkReferences+xml';
+  }
+
+  my $ret = $self->{api}->get($extnet_url);
+  my $externals = $ret->{'vmext:ExternalNetworkReference'};
+  
+  return wantarray ? %$externals : $externals;
+}
+
+=head3 list_portgroups()
+
+Returns a hash or hashref of available portgroups on the first associated 
+vcenter server.
+
+=cut
+
+sub list_portgroups {
+  my $self = shift @_;
+  my $query = $self->{api}->get('https://'. our $host .'/api/query?type=portgroup&pageSize=250');
+  my %portgroups = %{$query->{PortgroupRecord}};
+  return wantarray ? %portgroups : \%portgroups;
+}
+
+=head3 vimserver()
+
+Returns a reference to the first associated vcenter server.
+
+=cut
+
+sub vimserver {
+  my $self = shift @_;
+  my $ret = $self->{api}->admin_extension_vimServerReferences_get();
+  my $vims = $ret->{'vmext:VimServerReference'};
+  my $vim = ( keys %$vims )[0];
+  my $vimserver_href = $vims->{$vim}->{href};
+  return $self->{api}->admin_extension_vimServer_get($vimserver_href);
+}
+
+=head3 webclienturl($type,$moref)
+
+Give the vimserver type and managed object reference, this method returns the 
+URL for viewing the object via the vSphere Web client. This is handy for finding
+further details on objects within vSphere.
+
+=cut
+
+sub webclienturl {
+  my $self  = shift @_;
+  my $type  = shift @_;
+  my $moref = shift @_;
+
+  my $ret = $self->{api}->admin_extension_vimServerReferences_get();
+  my $vims = $ret->{'vmext:VimServerReference'};
+  my $vim = ( keys %$vims )[0];
+  my $vimserver_href = $vims->{$vim}->{href};
+    
+  my $urlrequest = $vimserver_href .'/'. $type .'/'. $moref .'/vSphereWebClientUrl';
+  return $urlrequest;
 }
 
 1;
