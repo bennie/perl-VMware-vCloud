@@ -45,9 +45,9 @@ this module as a "wrapper" for the vCloud API.
 
 This method creates the vCloud object.
 
-U<Arguments>
+Arguments
 
-=over
+=over 4
 
 =item * hostname
 
@@ -578,16 +578,29 @@ Create an org network
 
 The conf hash reference can contain:
 
-* name,
-* desc,
-* gateway,
-* netmask,
-* dns1,
-* dns2,
-* dnssuffix,
-* is_enabled,
-* start_ip,
-* end_ip)
+=over 4
+
+=item * name
+
+=item * desc
+
+=item * gateway
+
+=item * netmask
+
+=item * dns1
+
+=item * dns2
+
+=item * dnssuffix
+
+=item * is_enabled
+
+=item * start_ip
+
+=item * end_ip
+
+=back
 
 =cut
 
@@ -598,35 +611,34 @@ sub org_network_create {
   
   $self->_debug("API: org_network_create()\n") if $self->{debug};
   
-=head3 remove
-  my $xml = '
-<OrgNetwork xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
-  <Description>'.$desc.'</Description>
-   <Configuration>
-      <IpScopes>
-         <IpScope>
-            <IsInherited>false</IsInherited>
-            <Gateway>'.$gateway .'</Gateway>
-            <Netmask>'.$netmask.'</Netmask>
-            <Dns1>'.$dns1.'</Dns1>
-            <Dns2>'.$dns2.'</Dns2>
-            <DnsSuffix>'.$dnssuffix.'</DnsSuffix>
-            <IpRanges>
-               <IpRange>
-                  <StartAddress>'.$start_ip.'</StartAddress>
-                  <EndAddress>'.$end_ip.'</EndAddress>
-               </IpRange>
-            </IpRanges>
-         </IpScope>
-      </IpScopes>
-      <FenceMode>natRouted</FenceMode>
-   </Configuration>
-   <EdgeGateway
-      href="https://vcloud.example.com/api/admin/gateway/2000" />
-   <IsShared>true</IsShared>
-</OrgVdcNetwork>
-  ';
-=cut
+#  my $xml = '
+#<OrgNetwork xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$name.'">
+#  <Description>'.$desc.'</Description>
+#   <Configuration>
+#      <IpScopes>
+#         <IpScope>
+#            <IsInherited>false</IsInherited>
+#            <Gateway>'.$gateway .'</Gateway>
+#            <Netmask>'.$netmask.'</Netmask>
+#            <Dns1>'.$dns1.'</Dns1>
+#            <Dns2>'.$dns2.'</Dns2>
+#            <DnsSuffix>'.$dnssuffix.'</DnsSuffix>
+#            <IpRanges>
+#               <IpRange>
+#                  <StartAddress>'.$start_ip.'</StartAddress>
+#                  <EndAddress>'.$end_ip.'</EndAddress>
+#               </IpRange>
+#            </IpRanges>
+#         </IpScope>
+#      </IpScopes>
+#      <FenceMode>natRouted</FenceMode>
+#   </Configuration>
+#   <EdgeGateway
+#      href="https://vcloud.example.com/api/admin/gateway/2000" />
+#   <IsShared>true</IsShared>
+#</OrgVdcNetwork>
+#  ';
+
   my $xml = '<OrgVdcNetwork
    name="'.$conf->{name}.'"
    xmlns="http://www.vmware.com/vcloud/v1.5">
@@ -652,30 +664,57 @@ Create an org VDC
 
 The conf hash reference can contain:
 
-* name,
-* desc,
-* np_href,
-* sp_enabled,
-* sp_units,
-* sp_limit,
-* sp_default,
-* sp_href,
-* allocation_model,
-* cpu_unit
-* cpu_alloc
-* cpu_limit
-* mem_unit
-* mem_alloc
-* mem_limit
-* nic_quota
-* net_quota
-* ResourceGuaranteedMemory
-* ResourceGuaranteedCpu
-* VCpuInMhz
-* is_thin_provision
-* pvdc_name
-* pvdc_href
-* use_fast_provisioning
+=over 4
+
+=item * name
+
+=item * desc
+
+=item * np_href
+
+=item * sp_enabled
+
+=item * sp_units
+
+=item * sp_limit
+
+=item * sp_default
+
+=item * sp_href
+
+=item * allocation_model
+
+=item * cpu_unit
+
+=item * cpu_alloc
+
+=item * cpu_limit
+
+=item * mem_unit
+
+=item * mem_alloc
+
+=item * mem_limit
+
+=item * nic_quota
+
+=item * net_quota
+
+=item * ResourceGuaranteedMemory
+
+=item * ResourceGuaranteedCpu
+
+=item * VCpuInMhz
+
+=item * is_thin_provision
+
+=item * pvdc_name
+
+=item * pvdc_href
+
+=item * use_fast_provisioning
+
+=back
 
 =cut
 
