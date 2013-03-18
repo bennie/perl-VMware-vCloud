@@ -5,10 +5,10 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
-	VMware::vCloud - admin_urls(), debug(), delete_org(), delete_org_network(), 
-	  delete_vdc(), disable_org(), disable_vdc(), enable_org(), enable_vdc(), 
-	  extensions(), get_pvdc(), list_external_networks(), list_portgroups(), 
-	  purge(), vimserver(), webclienturl()
+    VMware::vCloud - admin_urls(), debug(), delete_org(), delete_org_network(), 
+      delete_vdc(), disable_org(), disable_vdc(), enable_org(), enable_vdc(), 
+      extensions(), get_pvdc(), list_external_networks(), list_portgroups(), 
+      purge(), vimserver(), webclienturl()
 
   Improved:
     VMware::vCloud - get_org() - now returns hash or hashref depending on context.

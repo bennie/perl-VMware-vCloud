@@ -493,12 +493,12 @@ sub org_create {
   my $url = $self->{learned}->{url}->{admin} . 'orgs';
   
   my $vdcs;  
-  if ( defined $conf->{pvdc} and ref $conf->{pvdc} ) {
-    for my $pvdc (@{$conf->{pvdc}}) {
-      $vdcs .= '<Vdc href="'.$pvdc.'"/> ';
+  if ( defined $conf->{vdc} and ref $conf->{vdc} ) {
+    for my $vdc (@{$conf->{vdc}}) {
+      $vdcs .= '<Vdc href="'.$vdc.'"/> ';
     }
-  } elsif ( defined $conf->{pvdc} ) {
-      $vdcs = '<Vdc href="'.$conf->{pvdc}.'"/> ';
+  } elsif ( defined $conf->{vdc} ) {
+      $vdcs = '<Vdc href="'.$conf->{vdc}.'"/> ';
   }
   $vdcs .= "\n";
   
@@ -509,9 +509,9 @@ sub org_create {
   <IsEnabled>'.$conf->{is_enabled}.'</IsEnabled>  
     <Settings>
         <OrgGeneralSettings>
-            <CanPublishCatalogs>true</CanPublishCatalogs>
-            <DeployedVMQuota>10</DeployedVMQuota>
-            <StoredVmQuota>15</StoredVmQuota>
+            <CanPublishCatalogs>'.$conf->{can_publish}.'</CanPublishCatalogs>
+            <DeployedVMQuota>'.$conf->{deployed}.'</DeployedVMQuota>
+            <StoredVmQuota>'.$conf->{stored}.'</StoredVmQuota>
             <UseServerBootSequence>false</UseServerBootSequence>
             <DelayAfterPowerOnSeconds>1</DelayAfterPowerOnSeconds>
         </OrgGeneralSettings>

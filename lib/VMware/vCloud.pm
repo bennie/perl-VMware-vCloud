@@ -465,6 +465,8 @@ sub get_org {
   $raw_org_data->{href} =~ /([^\/]+)$/;
   $org{id} = $1;
 
+  $org{vdcs} = $raw_org_data->{Vdcs}->[0]->{Vdc};
+
   $org{contains} = {};
   
   for my $link ( @{$raw_org_data->{Link}} ) {
