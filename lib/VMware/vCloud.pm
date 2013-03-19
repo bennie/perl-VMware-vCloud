@@ -278,7 +278,7 @@ sub list_vapps {
   my $vapps = our $cache->get('list_vapps:');
   
   unless ( defined $vapps ) {
-    my %vdcs = $self->list_vdcs();
+    my %vdcs = $self->list_vdcs($self->{'api'}{'orgname'});
     
     for my $vdcid ( keys %vdcs ) {
       my %vdc = $self->get_vdc($vdcid);

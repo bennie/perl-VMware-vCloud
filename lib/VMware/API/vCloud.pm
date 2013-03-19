@@ -596,6 +596,8 @@ The conf hash reference can contain:
 
 =item * is_enabled
 
+=item * is_shared
+
 =item * start_ip
 
 =item * end_ip
@@ -840,6 +842,25 @@ sub template_get {
   return $self->_xml_response($response);
 }
 
+=head2 template_get_metadata($tmpl_href)
+
+Returns the response for metadata for the given vApp href.
+
+=cut
+
+sub template_get_metadata {
+  my $self = shift @_;
+  my $href = shift @_;  
+  $self->_debug("API: template_get_metadata($href)\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $href . '/metadata' );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
+
 =head2 vdc_get($vdcid or $vdcurl)
 
 As a parameter, this method thakes the raw numeric id of the virtual data center or the full URL detailed a catalog.
@@ -884,7 +905,7 @@ sub vdc_list {
   return $self->_xml_response($response);
 }
 
-=head2 vapp_get($vappid or $vappurl)
+=head2 vapp_get($vappid or $vapp_href)
 
 As a parameter, this method thakes the raw numeric id of the vApp or the full URL.
 
@@ -910,6 +931,25 @@ sub vapp_get {
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
+
+=head2 vapp_get_metadata($vapp_href)
+
+Returns the response for metadata for the given vApp href.
+
+=cut
+
+sub vapp_get_metadata {
+  my $self = shift @_;
+  my $href = shift @_;  
+  $self->_debug("API: vapp_get_metadata($href)\n") if $self->{debug};
+
+  my $req = HTTP::Request->new( GET => $href . '/metadata' );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
 
 1;
 

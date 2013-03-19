@@ -5,6 +5,15 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
+    VMware::API::vCloud - template_get_metadata(), vapp_get_metadata()
+
+  Improved:
+    VMware::vVloud - list_vapps() - Now passes the login org to list_vapps() to
+      avoid pemission errors when logged in as an Org Admin.
+      
+2.22 2013/03/14
+
+  Added:
     VMware::vCloud - admin_urls(), debug(), delete_org(), delete_org_network(), 
       delete_vdc(), disable_org(), disable_vdc(), enable_org(), enable_vdc(), 
       extensions(), get_pvdc(), list_external_networks(), list_portgroups(), 
