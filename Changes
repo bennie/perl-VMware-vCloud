@@ -8,8 +8,9 @@ VERSIONTAG DATETAG
     VMware::API::vCloud - template_get_metadata(), vapp_get_metadata()
 
   Improved:
-    VMware::vVloud - list_vapps() - Now passes the login org to list_vapps() to
-      avoid pemission errors when logged in as an Org Admin.
+    VMware::vCloud - list_vapps() & list_templates() - Now uses the current login 
+      org a a parameter to list_vapps() to avoid pemission errors when logged in 
+      as an Org Admin.
       
 2.22 2013/03/14
 
