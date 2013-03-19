@@ -823,6 +823,8 @@ It returns the requested template.
 
 =cut
 
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Foperations%2FGET-VAppTemplate.html
+
 sub template_get {
   my $self = shift @_;
   my $tmpl = shift @_;
@@ -844,9 +846,13 @@ sub template_get {
 
 =head2 template_get_metadata($tmpl_href)
 
-Returns the response for metadata for the given vApp href.
+Returns the response for metadata for the given template href.
+
+HREF example: http://example.vcd.server/api/vAppTemplate/{uuid}
 
 =cut
+
+# http://www.vmware.com/support/vcd/doc/rest-api-doc-1.5-html/operations/GET-VAppTemplateMetadata.html
 
 sub template_get_metadata {
   my $self = shift @_;
@@ -936,7 +942,11 @@ sub vapp_get {
 
 Returns the response for metadata for the given vApp href.
 
+HREF example: http://example.vcd.server/api/vApp/{uuid}
+
 =cut
+
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Foperations%2FGET-VAppMetadata.html
 
 sub vapp_get_metadata {
   my $self = shift @_;
