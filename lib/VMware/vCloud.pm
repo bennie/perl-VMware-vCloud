@@ -648,6 +648,36 @@ sub get_pvdc {
 
 =head2 create_org_network 
 
+Create an org network
+
+The conf hash reference can contain:
+
+=over 4
+
+=item * name
+
+=item * desc
+
+=item * gateway
+
+=item * netmask
+
+=item * dns1
+
+=item * dns2
+
+=item * dnssuffix
+
+=item * is_enabled
+
+=item * is_shared
+
+=item * start_ip
+
+=item * end_ip
+
+=back
+
 =cut
 
 sub create_org_network {

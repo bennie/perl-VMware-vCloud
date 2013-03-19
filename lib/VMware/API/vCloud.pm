@@ -608,7 +608,9 @@ sub org_network_create {
   my $self = shift @_;
   my $url  = shift @_;
   my $conf = shift @_;
-  
+
+  $conf->{is_shared} = 0 unless defined $conf->{is_shared};  
+
   $self->_debug("API: org_network_create()\n") if $self->{debug};
   
 #  my $xml = '
@@ -648,6 +650,7 @@ sub org_network_create {
          href="'.$conf->{parent_net_href}.'" />
       <FenceMode>bridged</FenceMode>
    </Configuration>
+  <IsShared>'.$conf->{is_shared}.'</IsShared>
 </OrgVdcNetwork>';
 
   $url .= '/networks';
