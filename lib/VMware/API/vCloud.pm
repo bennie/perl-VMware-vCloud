@@ -481,9 +481,32 @@ sub catalog_get {
 
 =head2 org_create($name,$desc,$fullname,$is_enabled)
 
-Create an organization?
+Create an organization.
+
+=over 4
+
+=item * name
+
+=item * desc
+
+=item * fullname
+
+=item * is_enabled
+
+=item * can_publish
+
+=item * deployed
+
+=item * stored
+
+=item * ldap_mode: NONE, SYSTEM or CUSTOM - Custom requires further parameters not implemented yet. Default is NONE
+
+=back
 
 =cut
+
+# http://pubs.vmware.com/vcd-51/topic/com.vmware.vcloud.api.doc_51/GUID-439C57EA-859C-423C-B21B-22B230395600.html
+# http://www.vmware.com/support/vcd/doc/rest-api-doc-1.5-html/operations/PUT-Organization.html
 
 sub org_create {
   my $self = shift @_;
@@ -491,6 +514,8 @@ sub org_create {
 
   $self->_debug("API: org_create()\n") if $self->{debug};
   my $url = $self->{learned}->{url}->{admin} . 'orgs';
+
+  $conf->{ldap_mode} = 'NONE' unless defined $conf->{ldap_mode};
   
   my $vdcs;  
   if ( defined $conf->{vdc} and ref $conf->{vdc} ) {
@@ -515,6 +540,9 @@ sub org_create {
             <UseServerBootSequence>false</UseServerBootSequence>
             <DelayAfterPowerOnSeconds>1</DelayAfterPowerOnSeconds>
         </OrgGeneralSettings>
+        <OrgLdapSettings>
+          <OrgLdapMode>'$conf->{ldap_mode}.'</OrgLdapMode>
+        </OrgLdapSettings>
     </Settings>
     <Vdcs>
       '.$vdcs.'

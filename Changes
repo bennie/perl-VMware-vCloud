@@ -6,12 +6,15 @@ VERSIONTAG DATETAG
 
   Added:
     VMware::API::vCloud - template_get_metadata(), vapp_get_metadata()
+    VMware::API::vCloud - Started adding API documentation URLs as comments in 
+                          front of each method.
 
   Improved:
     VMware::vCloud - list_vapps() & list_templates() - Now uses the current login 
       org a a parameter to list_vapps() to avoid pemission errors when logged in 
       as an Org Admin.
-      
+    VMware::vCloud - org_create() improved POD, added ldap_mode as a parameter.
+
 2.22 2013/03/14
 
   Added:
