@@ -541,7 +541,7 @@ sub org_create {
             <DelayAfterPowerOnSeconds>1</DelayAfterPowerOnSeconds>
         </OrgGeneralSettings>
         <OrgLdapSettings>
-          <OrgLdapMode>'$conf->{ldap_mode}.'</OrgLdapMode>
+          <OrgLdapMode>'.$conf->{ldap_mode}.'</OrgLdapMode>
         </OrgLdapSettings>
     </Settings>
     <Vdcs>
