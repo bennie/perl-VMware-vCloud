@@ -371,6 +371,47 @@ sub list_templates {
   return %templates;
 }
 
+=head1 CATALOG METHODS
+
+=head2 create_catalog($org_href,$conf)
+
+This method creates a new, empty catalog in the given organization.
+
+$conf is a hashref that can contain:
+
+=over 4
+
+=item * name
+
+=item * description
+
+=item * is_published
+
+=back
+
+Org HREF example: http://example.vcd.server/api/admin/org/{id}
+
+=cut
+
+sub create_catalog {
+  my $self = shift @_;
+  return $self->{api}->catalog_create(@_);
+}
+
+=head2 delete_catalog($catalog_href)
+
+Given the org HREF, call a delete on it.
+
+=cut
+
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Foperations%2FDELETE-Catalog.html
+
+sub delete_catalog {
+  my $self = shift @_;
+  my $href = shift @_;
+  return $self->{api}->delete($href);
+}
+
 =head1 ORG METHODS
 
 =head2 create_org(\%conf)
@@ -442,7 +483,12 @@ organization. Returned data:
   description - Description field of the organization
   href - anchor HREF for the organization in the API 
   id - UUID identified in the href.
-  contains - A hash of contained objects
+
+  contains - A hashref of contained objects
+
+  catalogs = references to the catalogs within the org
+  vdcs - references to the org VDCs within the org
+
   raw - The raw returned XML structure for the organization from the API
   
 =cut
@@ -458,14 +504,16 @@ sub get_org {
 
   my %org;
   $org{raw}         = $raw_org_data;
+
+  $org{catalogs}    = $raw_org_data->{Catalogs}->[0]->{CatalogReference};
   $org{description} = $raw_org_data->{Description}->[0];
   $org{href}        = $raw_org_data->{href};
   $org{name}        = $raw_org_data->{name};
+  $org{networks}    = $raw_org_data->{Networks}->[0]->{Network};
+  $org{vdcs}        = $raw_org_data->{Vdcs}->[0]->{Vdc};
 
   $raw_org_data->{href} =~ /([^\/]+)$/;
   $org{id} = $1;
-
-  $org{vdcs} = $raw_org_data->{Vdcs}->[0]->{Vdc};
 
   $org{contains} = {};
   
@@ -891,11 +939,11 @@ identifier of an object. This module implements this best practice.
 
 =head1 CONTRIBUTIONS
 
-  Stuart Johnston, <sjohnston@cpan.org>
+A strong thanks to all people who have helped me with direction, ideas, patches
+and other such items.
 
-	Significant helpful contrbutions have been made by Mr. Johnston, including
-	the proper handling of the authentication header, the layout of modules,
-	and proper support for XML encoding.
+  Dave Gress, <dgress@vmware.com> - Handling org admin issues and metadata
+  Stuart Johnston, <sjohnston@cpan.org> - authentication and XML on API v1.0
 
 =head1 DEPENDENCIES
 

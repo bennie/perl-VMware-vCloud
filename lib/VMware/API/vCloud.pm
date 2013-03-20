@@ -7,6 +7,9 @@ use strict;
 
 our $VERSION = 'VERSIONTAG';
 
+# ADMIN OPTS - http://www.vmware.com/support/vcd/doc/rest-api-doc-1.5-html/landing-admin_operations.html
+# USER OPTS - http://www.vmware.com/support/vcd/doc/rest-api-doc-1.5-html/landing-user_operations.html
+
 =head1 NAME
 
 VMware::API::vCloud - The VMware vCloud API
@@ -451,6 +454,48 @@ sub admin_extension_vimServerReferences_get {
   return $self->_xml_response($response);  
 }
 
+=head2 catalog_create($org_href,$conf)
+
+$conf is a hashref that can contain:
+
+=over 4
+
+=item * name
+
+=item * description
+
+=item * is_published
+
+=back
+
+Org HREF example: http://example.vcd.server/api/admin/org/{id}
+
+=cut
+
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Foperations%2FPOST-CreateCatalog.html
+
+# Add catalog item http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Foperations%2FPOST-CreateCatalogItem.html
+
+sub catalog_create {
+  my $self = shift @_;
+  my $url  = shift @_;
+  my $conf = shift @_;
+  
+  $conf->{is_published} = 0 unless defined $conf->{is_published};
+
+  $url .= '/catalogs' unless $url =~ /\/catalogs$/;
+  $self->_debug("API: catalog_create($url)\n") if $self->{debug};
+
+  my $xml = '<AdminCatalog xmlns="http://www.vmware.com/vcloud/v1.5" name="'.$conf->{name}.'">
+   <Description>'.$conf->{description}.'</Description>
+   <IsPublished>'.$conf->{is_published}.'</IsPublished>
+</AdminCatalog>';
+
+  my $ret = $self->post($url,'application/vnd.vmware.admin.catalog+xml',$xml);
+
+  return $ret->[2]->{href} if $ret->[1] == 201;
+  return $ret;
+}
 
 =head2 catalog_get($catid or $caturl)
 
@@ -1029,7 +1074,11 @@ dearly love a few changes, that might help things:
 
 =head1 CONTRIBUTIONS
 
-  stu41j - http://communities.vmware.com/people/stu42j
+A strong thanks to all people who have helped me with direction, ideas, patches
+and other such items.
+
+  Dave Gress, <dgress@vmware.com> - Handling org admin issues and metadata
+  Stuart Johnston, <sjohnston@cpan.org> - authentication and XML on API v1.0
 
 =head1 DEPENDENCIES
 

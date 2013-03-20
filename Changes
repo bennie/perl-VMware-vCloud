@@ -5,6 +5,13 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
+    Acknowledgement of David Gress as a contributor.
+    VMware::vCloud - create_catalog(), delete_catalog()
+    VMware::API::vCloud - catalog_create()
+    
+2.26 2013/03/19
+
+  Added:
     VMware::API::vCloud - template_get_metadata(), vapp_get_metadata()
     VMware::API::vCloud - Started adding API documentation URLs as comments in 
                           front of each method.
