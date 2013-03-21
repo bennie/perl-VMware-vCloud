@@ -3,6 +3,8 @@ TODO!
 These items are goals and plans for the future for this module. They recognize
 deficiencies and inefficiencies in the current module:
 
+- org_create leases are hard coded. This needs to be fixed.
+
 - Support all methods. :)
 
 - Unified LWP handling to be able to dump transactions at debug and error levels
