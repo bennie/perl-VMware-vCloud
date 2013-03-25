@@ -373,6 +373,33 @@ sub login {
   return $self->{raw}->{login};
 }
 
+=head2 logout()
+
+Removes the current login session on the server.
+
+=cut
+
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.doc_51%2FGUID-86CA32C2-3753-49B2-A471-1CE460109ADB.html
+
+sub logout  {
+  my $self = shift @_;
+
+  my $token = $self->{ua}->default_header('x-vcloud-authorization');
+
+  $self->_debug('Logout URL: '.$self->{learned}->{url}->{login});
+  my $req = HTTP::Request->new( DELETE => $self->{learned}->{url}->{login} ); 
+
+  $self->{learned}->{accept_header} = 'application/*+xml;version='.$self->{learned}->{version};
+  $req->header( 'x-vcloud-authorization' => $token );
+  $self->_debug('Authorization : '.$token );
+
+  $self->_debug('Accept header: '.$self->{learned}->{accept_header});
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
 ### API methods
 
 =head2 admin()

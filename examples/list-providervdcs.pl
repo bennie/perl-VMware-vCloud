@@ -1,5 +1,5 @@
 #!/usr/bin/perl -I../lib
-=head1 list-templates.pl
+=head1 list-providervdcs.pl
 
 This example script uses the API to list all Templates that the user has 
 ability to access.
@@ -17,7 +17,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 

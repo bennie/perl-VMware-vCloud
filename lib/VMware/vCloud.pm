@@ -85,6 +85,11 @@ sub new {
   return $self;
 }
 
+sub DESTROY {
+  my $self = shift @_;
+  $self->{api}->logout();
+}
+
 =head2 debug(1|0)
 
 This turns debugging on and off programatically. An argument of '1' for debugging, '0'

@@ -8,7 +8,9 @@ VERSIONTAG DATETAG
     Acknowledgement of David Gress as a contributor.
     VMware::vCloud - create_catalog(), delete_catalog()
     VMware::API::vCloud - catalog_create(), catalog_get_access(),
-      catalog_set_access()
+      catalog_set_access(), logout()*
+
+  * Provided by David Gress
     
 2.26 2013/03/19
 
