@@ -370,6 +370,7 @@ sub login {
     #die Dumper($self->{raw}->{login}->{Link});
   }
 
+  $self->{have_session} = 1;
   return $self->{raw}->{login};
 }
 
@@ -379,24 +380,20 @@ Removes the current login session on the server.
 
 =cut
 
-# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.doc_51%2FGUID-86CA32C2-3753-49B2-A471-1CE460109ADB.html
+# http://pubs.vmware.com/vcd-51/topic/com.vmware.vcloud.api.doc_51/GUID-FBAA5B7D-8599-40C2-8081-E6D77DF18D5F.html
 
 sub logout  {
   my $self = shift @_;
+  $self->_debug("API: logout()\n") if $self->{debug};
+  $self->{have_session} = 0;
 
-  my $token = $self->{ua}->default_header('x-vcloud-authorization');
-
-  $self->_debug('Logout URL: '.$self->{learned}->{url}->{login});
-  my $req = HTTP::Request->new( DELETE => $self->{learned}->{url}->{login} ); 
-
-  $self->{learned}->{accept_header} = 'application/*+xml;version='.$self->{learned}->{version};
-  $req->header( 'x-vcloud-authorization' => $token );
-  $self->_debug('Authorization : '.$token );
-
-  $self->_debug('Accept header: '.$self->{learned}->{accept_header});
+  my $url = $self->{learned}->{url}->{login};
+  $url =~ s/sessions/session/;
+  my $req = HTTP::Request->new( DELETE => $self->{learned}->{url}->{login} );
   $req->header( Accept => $self->{learned}->{accept_header} );
 
   my $response = $self->{ua}->request($req);
+  return 1 if $response->code() == 401; # No content is a successful logout  
   return $self->_xml_response($response);
 }
 
@@ -1148,14 +1145,24 @@ __END__
 
 =head1 BUGS and LIMITATIONS
 
-Template name validation.
+=head3 LoginUrl error.
 
-  Most names in the GUI (for vApps, VMs, Templates, and Catalogs) are limited to
-  128 characters, and are restricted to being composed of alpha numerics and 
-  standard keyboard punctuations. Notably, spaces and tabs are NOT allowed to
-  be entered in the GUI. However, you can upload a template in the API with a
-  space in the name. It will only be visable or usable some of the time in the 
-  GUI. Apparently there is a bug in name validation via the API.
+In both version 1.5 and 5.1 of the API, the "LoginUrl" returned upon log has the
+value of 'https://HOSTNAME/api/sessions'
+	
+To actually succeed with an API log out, however, the URL has to be "session" - 
+singular - 'https://HOSTNAME/api/session'
+
+This module works around this issue.
+
+=head3 Template name validation.
+
+Most names in the GUI (for vApps, VMs, Templates, and Catalogs) are limited to
+128 characters, and are restricted to being composed of alpha numerics and 
+standard keyboard punctuations. Notably, spaces and tabs are NOT allowed to
+be entered in the GUI. However, you can upload a template in the API with a
+space in the name. It will only be visable or usable some of the time in the 
+GUI. Apparently there is a bug in name validation via the API.
 
 =head1 WISH LIST
 

@@ -87,7 +87,7 @@ sub new {
 
 sub DESTROY {
   my $self = shift @_;
-  $self->{api}->logout();
+  $self->{api}->logout() if defined $self->{api}->{have_session} and $self->{api}->{have_session} > 0;
 }
 
 =head2 debug(1|0)

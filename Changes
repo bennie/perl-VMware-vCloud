@@ -9,6 +9,7 @@ VERSIONTAG DATETAG
     VMware::vCloud - create_catalog(), delete_catalog()
     VMware::API::vCloud - catalog_create(), catalog_get_access(),
       catalog_set_access(), logout()*
+	VMware::API::vCloud - POD noting the LoginUrl error.
 
   * Provided by David Gress
     
