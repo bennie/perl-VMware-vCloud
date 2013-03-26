@@ -5,6 +5,14 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
+    VMware::vCloud - list_pvdcs()
+
+  Improved:
+    examples/list-pvds.pl - Now using VMware::vCloud
+
+2.29 2013/03/25
+
+  Added:
     Acknowledgement of David Gress as a contributor.
     VMware::vCloud - create_catalog(), delete_catalog()
     VMware::API::vCloud - catalog_create(), catalog_get_access(),

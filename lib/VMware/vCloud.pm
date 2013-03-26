@@ -698,6 +698,27 @@ sub get_pvdc {
   return $self->{api}->pvdc_get($href);
 }
 
+=head2 list_pvdcs()
+
+Returns a hashref of the information on available PVDCs
+
+=cut
+
+sub list_pvdcs {
+  my $self = shift @_;
+  my $href = shift @_;
+
+  my $admin_urls = $self->admin_urls();
+  my $pvdcs = {};
+  
+  for my $name ( keys %{$admin_urls->{pvdcs}} ) {
+    my $href = $admin_urls->{pvdcs}->{$name}->{href};
+    $pvdcs->{$href} = $name;
+  }
+  
+  return wantarray ? %$pvdcs : $pvdcs;
+}
+
 =head1 NETWORK METHODS
 
 =head2 create_org_network 
