@@ -12,3 +12,5 @@ deficiencies and inefficiencies in the current module:
 - Improve documentation on return values on all methods
 - Verify that all methods are complete
 - Handle all "singleton" return conditions to force arrays when appropriate
+
+- list_* methods need to use the new query options.

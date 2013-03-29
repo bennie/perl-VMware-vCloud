@@ -6,9 +6,12 @@ VERSIONTAG DATETAG
 
   Added:
     VMware::vCloud - list_pvdcs()
+    VMware::API::vCloud - org_vdc_update(), put()
 
   Improved:
     examples/list-pvds.pl - Now using VMware::vCloud
+    VMware::vCloud - get_vdc() now retruns hash or hashref.
+    VMware::API::vCloud - added debug levels 2 and 3
 
 2.29 2013/03/25
 

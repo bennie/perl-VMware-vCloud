@@ -96,7 +96,12 @@ sub new {
 
 =over 4
 
-=item debug - 1 to turn on debugging. 0 for none. Defaults to 0.
+=item debug
+
+  0 for no debugging.
+  1 to turn on basic debug messages. 
+  2 to display learned variables on exit.
+  3 to show all XML transactions.
 
 =item die_on_fault - 1 to cause the program to die verbosely on a soap fault. 0 for the fault object to be returned on the call and for die() to not be called. Defaults to 1. If you choose not to die_on_fault (for example, if you are writing a CGI) you will want to check all return objects to see if they are fault objects or not.
 
@@ -144,16 +149,23 @@ sub DESTROY {
   my $self = shift @_;
   my @dump = split "\n", Dumper($self->{learned});
   pop @dump; shift @dump;
-  #$self->_debug("Learned variables: \n" . join("\n",@dump));
+  $self->_debug_with_level(2,"Learned variables: \n" . join("\n",@dump));
 }
 
 sub _debug {
-  my $self = shift @_;
+  my $self  = shift @_;
   return undef unless $self->{debug};
   while ( my $debug = shift @_ ) {
     chomp $debug;
     print STDERR "DEBUG: $debug\n";
   }
+}
+
+sub _debug_with_level {
+  my $self  = shift @_;
+  my $value = shift @_;
+  return undef if $self->{debug} < $value;
+  $self->_debug(@_);
 }
 
 sub _fault {
@@ -181,6 +193,7 @@ sub _fault {
 sub _regenerate {
   my $self = shift @_;  
   $self->{ua} = LWP::UserAgent->new;
+  $self->_debug("VMware::API::vCLoud::_regenerate()",2);
 
   $self->{api_version} = $self->api_version();
   $self->_debug("API Version: $self->{api_version}");
@@ -192,7 +205,7 @@ sub _regenerate {
 sub _xml_response {
   my $self     = shift @_;
   my $response = shift @_;
-  
+  $self->_debug_with_level(3,"Received XML Content: \n\n" . $response->content . "\n\n");
   if ( $response->is_success ) {
     return undef unless $response->content;
     my $data = XMLin( $response->content, ForceArray => 1 );
@@ -277,6 +290,42 @@ sub post {
   $req->content($content) if $content;
   $req->content_type($type) if $type;
   $req->header( Accept => $self->{learned}->{accept_header} );
+
+  $self->_debug_with_level(3,"Posting with XML Content-Type: $type","Posting XML content:\n\n$content\n\n");
+
+  my $response = $self->{ua}->request($req);
+  my $data = $self->_xml_response($response);
+
+  my @ret = ( $response->message, $response->code, $data );
+
+  return wantarray ? @ret : \@ret;
+}
+
+=head2 put($url,$type,$content)
+
+Performs a PUT action on the given URL, and returns the parsed XML response.
+
+The optional value for $type is set as the Content Type for the transaction. 
+
+The optional value for $content is used as the content of the post.
+
+=cut
+
+sub put {
+  my $self = shift @_;
+  my $href = shift @_;
+
+  my $type = shift @_;
+  my $content = shift @_;
+
+  $self->_debug("API: post($href)\n") if $self->{debug};
+  my $req = HTTP::Request->new( PUT => $href );
+
+  $req->content($content) if $content;
+  $req->content_type($type) if $type;
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  $self->_debug_with_level(3,"Posting with XML Content-Type: $type","Posting XML content:\n\n$content\n\n");
 
   my $response = $self->{ua}->request($req);
   my $data = $self->_xml_response($response);
@@ -901,6 +950,8 @@ The conf hash reference can contain:
 
 =cut
 
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Ftypes%2FCreateVdcParamsType.html
+
 sub org_vdc_create {
   my $self = shift @_;
   my $url  = shift @_;
@@ -965,6 +1016,147 @@ sub org_vdc_create {
   $url .= '/vdcsparams';
 
   my $ret = $self->post($url,'application/vnd.vmware.admin.createVdcParams+xml',$xml);
+
+  return $ret->[2]->{href} if $ret->[1] == 201;
+  return $ret;
+}
+
+=head2 org_vdc_update($url,$conf)
+
+Create an org VDC
+
+The conf hash reference can contain:
+
+=over 4
+
+=item * name (required)
+
+=item * desc
+
+=item * np_href
+
+=item * sp_enabled
+
+=item * sp_units
+
+=item * sp_limit
+
+=item * sp_default
+
+=item * sp_href
+
+=item * allocation_model
+
+=item * cpu_unit
+
+=item * cpu_alloc
+
+=item * cpu_limit
+
+=item * mem_unit
+
+=item * mem_alloc
+
+=item * mem_limit
+
+=item * nic_quota
+
+=item * net_quota
+
+=item * ResourceGuaranteedMemory
+
+=item * ResourceGuaranteedCpu
+
+=item * VCpuInMhz
+
+=item * is_thin_provision
+
+=item * pvdc_name
+
+=item * pvdc_href
+
+=item * use_fast_provisioning
+
+=back
+
+=cut
+
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Ftypes%2FAdminVdcType.html
+
+sub org_vdc_update {
+  my $self = shift @_;
+  my $url  = shift @_;
+  my $conf = shift @_;
+  $self->_debug("API: org_vdc_update()\n") if $self->{debug};
+  
+  my $desc        = '<Description>'.$conf->{desc}."</Description>\n";
+  my $alloc       = $conf->{allocation_model} ? '<AllocationModel>'.$conf->{allocation_model}."</AllocationModel>\n" : '';
+  my $compute;
+  my $nicquota    = defined $conf->{nic_quota} ? '<NicQuota>'.$conf->{nic_quota}."</NicQuota>\n" : '';
+  my $netquota    = defined $conf->{net_quota} ? '<NetworkQuota>'.$conf->{net_quota}."</NetworkQuota>\n" : '';
+  my $sp;
+  my $networkpool = $conf->{np_href} ? '<NetworkPoolReference href="'.$conf->{np_href}.'"/>' : '';
+  my $res_mem     = defined $conf->{ResourceGuaranteedMemory} ? '<ResourceGuaranteedMemory>'.$conf->{ResourceGuaranteedMemory}."</ResourceGuaranteedMemory>\n" : '';
+  my $res_cpu     = defined $conf->{ResourceGuaranteedCpu} ? '<ResourceGuaranteedCpu>'.$conf->{ResourceGuaranteedCpu}."</ResourceGuaranteedCpu>\n" : '';
+  my $vcpu        = defined $conf->{VCpuInMhz} ? '<VCpuInMhz>'.$conf->{VCpuInMhz}."</VCpuInMhz>\n" : '';
+  my $thin        = defined $conf->{is_thin_provision} ? '<IsThinProvision>'.$conf->{is_thin_provision}."</IsThinProvision>\n" : '';
+  my $pvdc        = $conf->{pvdc_href} ? '<ProviderVdcReference name="'.$conf->{pvdc_name}.'" href="'.$conf->{pvdc_href}."\" />\n" : '';
+  my $fast        = defined $conf->{use_fast_provisioning} ? '<UsesFastProvisioning>'.$conf->{use_fast_provisioning}."</UsesFastProvisioning>\n" : '';
+
+  if ( defined $conf->{sp} and ref $conf->{sp} ) {
+    for my $ref ( @{$conf->{sp}} ) {
+      $sp .= '<VdcStorageProfile>
+      <Enabled>'.$ref->{sp_enabled}.'</Enabled>
+      <Units>'.$ref->{sp_units}.'</Units>
+      <Limit>'.$ref->{sp_limit}.'</Limit>
+      <Default>'.$ref->{sp_default}.'</Default>
+      <ProviderVdcStorageProfile href="'.$ref->{sp_href}.'" />
+   </VdcStorageProfile>';
+	}
+  } elsif ( defined $conf->{sp_enabled} ) {
+    $sp = '<VdcStorageProfile>
+      <Enabled>'.$conf->{sp_enabled}.'</Enabled>
+      <Units>'.$conf->{sp_units}.'</Units>
+      <Limit>'.$conf->{sp_limit}.'</Limit>
+      <Default>'.$conf->{sp_default}.'</Default>
+      <ProviderVdcStorageProfile href="'.$conf->{sp_href}.'" />
+   </VdcStorageProfile>';
+  }
+
+  if ( defined $conf->{cpu_unit} or defined $conf->{mem_unit} ) {
+    $compute = '  <ComputeCapacity>
+      <Cpu>
+         <Units>'.$conf->{cpu_unit}.'</Units>
+         <Allocated>'.$conf->{cpu_alloc}.'</Allocated>
+         <Limit>'.$conf->{cpu_limit}.'</Limit>
+      </Cpu>
+      <Memory>
+         <Units>'.$conf->{mem_unit}.'</Units>
+         <Allocated>'.$conf->{mem_alloc}.'</Allocated>
+         <Limit>'.$conf->{mem_limit}."</Limit>
+      </Memory>
+   </ComputeCapacity>\n";
+  }
+  
+  my $href = $conf->{href} ? 'href="'.$conf->{href}.'"' : '';
+  
+  my $xml = '<AdminVdc xmlns="http://www.vmware.com/vcloud/v1.5" '.$href.' name="'.$conf->{name}."\">\n"
+          . $desc
+          . $alloc
+          . $compute
+          . $nicquota
+          . $netquota
+          . $sp
+          . $res_mem
+          . $res_cpu
+          . $vcpu
+          . $thin
+          . $networkpool
+          . $pvdc 
+          . $fast
+          . "</AdminVdc>\n";
+
+  my $ret = $self->put($url,'application/vnd.vmware.admin.vdc+xml',$xml);
 
   return $ret->[2]->{href} if $ret->[1] == 201;
   return $ret;

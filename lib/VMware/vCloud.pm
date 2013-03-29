@@ -648,7 +648,7 @@ sub get_vdc {
   }
   
   $cache->set('get_vdc:'.$id,$raw_vdc_data);
-  return %$raw_vdc_data;
+  return wantarray ? %$raw_vdc_data : $raw_vdc_data;
 }
 
 =head2 list_vdcs() | list_vdcs($orgid)
