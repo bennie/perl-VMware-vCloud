@@ -1162,7 +1162,7 @@ sub org_vdc_update {
   return $ret;
 }
 
-=head2 pdvc_get()
+=head2 pdvc_get($href)
 
 =cut
 
@@ -1184,6 +1184,27 @@ sub pvdc_get {
   my $response = $self->{ua}->request($req);
   return $self->_xml_response($response);
 }
+
+=head2 task_get($href)
+
+Returns information on the task.
+
+=cut
+
+# http://pubs.vmware.com/vcd-51/topic/com.vmware.vcloud.api.reference.doc_51/doc/operations/GET-Task.html
+
+sub task_get {
+  my $self = shift @_;
+  my $href = shift @_;
+  $self->_debug("API: task_get($href)\n") if $self->{debug};
+  
+  my $req = HTTP::Request->new( GET => $href );
+  $req->header( Accept => $self->{learned}->{accept_header} );
+
+  my $response = $self->{ua}->request($req);
+  return $self->_xml_response($response);
+}
+
 
 =head2 template_get($templateid or $templateurl)
 

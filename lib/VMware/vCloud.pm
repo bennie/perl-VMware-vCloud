@@ -795,6 +795,74 @@ sub list_networks {
   return %networks;
 }
 
+=head1 TASKS
+
+=head3 get_task($href)
+
+Returns a hash or hashref of the given task.
+
+Contents include: (but aren't limited to)
+
+* href
+* operation
+* expiryTime
+* startTime
+* Progress
+* operationName
+* operation
+* status
+
+=cut
+
+sub get_task {
+  my $self = shift @_;
+  my $href = shift @_;
+  return $self->{api}->task_get($href);
+}
+
+=head3 wait_on_task($href)
+
+Given a task href, this method will query the task every second, and only
+return once the task is completed.
+
+Specifically, this method will block and continue to query the task while it 
+has any of the following statuses:
+
+* queued - The task has been queued for execution.
+* preRunning - The task is awaiting preprocessing or administrative action.
+* running - The task is running.
+
+Any of the following statuses will cause this method to return:
+
+* success - The task completed with a status of success.
+* error - The task encountered an error while running.
+* cancelled - The task was canceled by the owner or an administrator.
+* aborted - The task was aborted by an administrative action.
+
+The return value will be and array or arrayref composed of two elements:
+
+* The status code returned by the server
+* A hashref comprising the most recently retrived for of the task object. IE:
+the same output as get_task()
+
+=cut
+
+sub wait_on_task {
+  my $self = shift @_;
+  my $href = shift @_;  
+
+  my $task = $self->get_task($href);
+  my $status = $task->{status};
+  
+  while ( $status eq 'queued' or $status eq 'preRunning' or $status eq 'running' ) {
+    sleep 1;
+    $task = $self->get_task($href);
+    $status = $task->{status};
+  }  
+
+  return wantarray ? ( $status, $task ) : [ $status, $task ];
+}
+
 =head1 ADMINISTRATIVE METHODS
 
 =head3 admin_urls()

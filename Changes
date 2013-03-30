@@ -5,15 +5,16 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
-    VMware::vCloud - list_pvdcs()
-    VMware::API::vCloud - org_vdc_update(), put()
+    VMware::vCloud - get_task(), list_pvdcs(), wait_on_task()
+    VMware::API::vCloud - org_vdc_update(), put(), task_get()
 
   Improved:
     examples/list-pvds.pl - Now using VMware::vCloud
     VMware::vCloud - get_vdc() now retruns hash or hashref.
     VMware::API::vCloud - added debug levels 2 and 3
+    Date format in documentation is now in ISO 8601 format.
 
-2.29 2013/03/25
+2.29 2013-03-25
 
   Added:
     Acknowledgement of David Gress as a contributor.
@@ -22,9 +23,12 @@ VERSIONTAG DATETAG
       catalog_set_access(), logout()*
 	VMware::API::vCloud - POD noting the LoginUrl error.
 
+  Improved:
+    Automatic call of logout() on DESTROY if needed.
+
   * Provided by David Gress
     
-2.26 2013/03/19
+2.26 2013-03-19
 
   Added:
     VMware::API::vCloud - template_get_metadata(), vapp_get_metadata()
@@ -37,7 +41,7 @@ VERSIONTAG DATETAG
       as an Org Admin.
     VMware::vCloud - org_create() improved POD, added ldap_mode as a parameter.
 
-2.22 2013/03/14
+2.22 2013-03-14
 
   Added:
     VMware::vCloud - admin_urls(), debug(), delete_org(), delete_org_network(), 
@@ -50,7 +54,7 @@ VERSIONTAG DATETAG
     VMware::vCloud - Improved and reorganized POD.
     POD cleanup and formatting.
 
-2.19 2013/03/13
+2.19 2013-03-13
 
   Added:
     VMware::vCloud - create_external_network()
@@ -71,7 +75,7 @@ VERSIONTAG DATETAG
   Fixed:
     Version now included in accept header for authentication.
   
-2.12 2011/10/27
+2.12 2011-10-27
 
   Added:
     XML schema descriptors for 1.0 and 1.5 included in distribution.
@@ -93,7 +97,7 @@ VERSIONTAG DATETAG
   Fixed:
     examples/poweron-vappl.pl - Now actually included in the distribution
       
-2.07 2011/10/06
+2.07 2011-10-06
 
   Improved:
     VMware::API::vCloud: Error handling now recognizes an HTTP::Response object.
@@ -102,7 +106,7 @@ VERSIONTAG DATETAG
   Fixed:
     Included VMware::vCloud::vApp in MANIFEST
 
-2.06 2011/10/05
+2.06 2011-10-05
 
   Added:
     VMware::vCloud::vApp - An object representation of a vApp.
@@ -111,7 +115,7 @@ VERSIONTAG DATETAG
   Improved:
     Documentation now matches all methods.
 
-2.04 2011/10/03
+2.04 2011-10-03
 
   Added:
     Caching of data with Cache::Bounded.
@@ -121,7 +125,7 @@ VERSIONTAG DATETAG
     examples/list-vms.pl - Removed commented-out code from 1.x version.
 
 
-2.01 2011/09/30
+2.01 2011-09-30
 
   This is a major change in philosophy. Previously this module emulated the API
   in the name of method and returned data structures.
@@ -143,7 +147,7 @@ VERSIONTAG DATETAG
     Session ID is now handled via HTTP header, not cookies. This matches the published API docs.
 
 
-1.600.08 2011/08/02
+1.600.08 2011-08-02
 
   Added:
 	examples/list-vms.pl - List all vApps and their VMs
@@ -152,7 +156,7 @@ VERSIONTAG DATETAG
     Added POD to the examples: get_org.pl, login.pl
     Fixed double "v" on new Version in POD
 
-1.600.07 2011/07/29
+1.600.07 2011-07-29
 
   Added:    
     vdc_get() - List the contents of a Virtual Datacenter
@@ -161,20 +165,20 @@ VERSIONTAG DATETAG
   Fixed:
     Moved to multidigit CPAN-compatible version to work around single-digit subversion numbers.
 
-1.6 2011/07/14
+1.6 2011-07-14
 
   Added:
     catalog_get() - List a catalogs contents
 
   NB: Release created and submitted from the air on cross-country flight. :)
 
-1.5 2011/07/01
+1.5 2011-07-01
 
   Improved:
     Tests now skip() and don't report fail when connection info is not
     provided. The first test reports visual details of this.
 
-1.4 2011/06/25
+1.4 2011-06-25
 
   Added:
     org_get() - List an organizations contents
@@ -187,13 +191,13 @@ VERSIONTAG DATETAG
   Corrected:
     Removed POD references to VMware::API::LabManager
 
-1.3 2011/06/25
+1.3 2011-06-25
 
   Corrected:
     Error calling Data::Dumper on _fault()
     Syntax error in META.yml
 
-1.2 2011/06/23
+1.2 2011-06-23
 
   The server is now properly queried for the API version.
   XML to data structure translation of server responses is now in place.  
@@ -204,7 +208,7 @@ VERSIONTAG DATETAG
   Improved:
     login() - Now returns a data structure of accessible organizations upon successful login.
   
-1.1  2011/06/16
+1.1  2011-06-16
 
   Initial connection seed from sample code from hosting.com with comments from
   the VMware communities.
