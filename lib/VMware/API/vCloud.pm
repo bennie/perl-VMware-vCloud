@@ -1302,6 +1302,112 @@ sub vdc_list {
   return $self->_xml_response($response);
 }
 
+=head2 vapp_create($url,$name,$netid,$fencemode,$template_href,$IpAddressAllocationMode,$vcdid,$tmplid)
+
+Given a name, VDC, template and network, instantiate the template with the given
+settings and other defaults.
+
+Details of the create task will be returned.
+
+* Fencemode can be: bridged, isolated, or natRouted
+* IP Allocation mode can be: NONE, MANUAL, POOL, DHCP
+
+=cut
+
+sub vapp_create {
+  my $self = shift @_;
+  my $url  = shift @_;
+  
+  my $name = shift @_;
+  my $netid = shift @_;
+  my $fencemode = shift @_;
+  my $template_href = shift @_;
+  my $IpAddressAllocationMode = shift @_;
+
+  my $vdcid  = shift @_;  
+  my $tmplid = shift @_;
+
+  $self->_debug("API: vapp_create($url)\n") if $self->{debug};
+
+  # XML to build
+
+my $xml = '<ComposeVAppParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
+  <InstantiationParams>
+    <NetworkConfigSection>
+      <ovf:Info>Configuration parameters for logical networks</ovf:Info>
+      <NetworkConfig networkName="'.$netid.'">
+        <Configuration>
+          <ParentNetwork href="'.$netid.'"/> 
+          <FenceMode>'.$fencemode.'</FenceMode>
+        </Configuration>
+      </NetworkConfig>
+    </NetworkConfigSection>
+  </InstantiationParams>
+  <Item>
+    <Source href="'.$template_href.'"/>
+    <InstantiationParams>
+      <NetworkConnectionSection
+        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
+        href="'.$template_href.'/networkConnectionSection/" ovf:required="false">
+        <ovf:Info/>
+        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+        <NetworkConnection network="'.$netid.'">
+          <NetworkConnectionIndex>0</NetworkConnectionIndex>
+          <IsConnected>true</IsConnected>
+          <IpAddressAllocationMode>'.$IpAddressAllocationMode.'</IpAddressAllocationMode>
+        </NetworkConnection>
+      </NetworkConnectionSection>
+    </InstantiationParams>
+
+  </Item>
+  <AllEULAsAccepted>true</AllEULAsAccepted>
+</ComposeVAppParams>';
+
+
+#  <Item>
+#    <Source href="http://vcloud.example.com/api/v1.0/vApp/vm-4"/>
+#    <InstantiationParams>
+#      <NetworkConnectionSection
+#        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
+#        href="http://vcloud.example.com/api/v1.0/vApp/vm-4/
+#        networkConnectionSection/" ovf:required="false">
+#        <ovf:Info/>
+#        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+#        <NetworkConnection network="CRMApplianceNetwork">
+#          <NetworkConnectionIndex>0</NetworkConnectionIndex>
+#          <IsConnected>true</IsConnected>
+#          <IpAddressAllocationMode>DHCP</IpAddressAllocationMode>
+#        </NetworkConnection>
+#      </NetworkConnectionSection>
+#    </InstantiationParams>
+#  </Item>
+#  <Item>
+#    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-114"/>
+#  </Item>
+
+#my $ret = $self->{api}->post($url,'application/vnd.vmware.vcloud.composeVAppParams+xml',$xml);
+
+my $xml = '
+<InstantiateVAppTemplateParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" >
+	<Description>Example FTP Server vApp</Description>
+	<InstantiationParams>
+		<NetworkConfigSection>
+			<ovf:Info>Configuration parameters for vAppNetwork</ovf:Info>
+			<NetworkConfig networkName="vAppNetwork">
+				<Configuration>
+					<ParentNetwork href="'.$netid.'"/>
+					<FenceMode>'.$fencemode.'</FenceMode>
+				</Configuration>
+			</NetworkConfig>
+		</NetworkConfigSection>
+	</InstantiationParams>
+	<Source href="'.$template_href.'"/>
+</InstantiateVAppTemplateParams>
+';
+
+  return $self->post($url,'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml',$xml);
+}
+
 =head2 vapp_get($vappid or $vapp_href)
 
 As a parameter, this method thakes the raw numeric id of the vApp or the full URL.

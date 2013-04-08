@@ -148,6 +148,9 @@ Details of the create task will be returned.
 
 =cut
 
+# bridged, isolated, or natRouted
+# NONE, MANUAL, POOL, DHCP
+
 sub create_vapp_from_template {
   my $self = shift @_;
   my $name = shift @_;
@@ -170,83 +173,7 @@ sub create_vapp_from_template {
   my $fencemode = 'bridged'; # bridged, isolated, or natRouted
   my $IpAddressAllocationMode = 'POOL'; # NONE, MANUAL, POOL, DHCP
 
-  # XML to build
-
-my $xml = '<ComposeVAppParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1">
-  <InstantiationParams>
-    <NetworkConfigSection>
-      <ovf:Info>Configuration parameters for logical networks</ovf:Info>
-      <NetworkConfig networkName="'.$netid.'">
-        <Configuration>
-          <ParentNetwork href="'.$netid.'"/> 
-          <FenceMode>'.$fencemode.'</FenceMode>
-        </Configuration>
-      </NetworkConfig>
-    </NetworkConfigSection>
-  </InstantiationParams>
-  <Item>
-    <Source href="'.$template{href}.'"/>
-    <InstantiationParams>
-      <NetworkConnectionSection
-        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
-        href="'.$template{href}.'/networkConnectionSection/" ovf:required="false">
-        <ovf:Info/>
-        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
-        <NetworkConnection network="'.$netid.'">
-          <NetworkConnectionIndex>0</NetworkConnectionIndex>
-          <IsConnected>true</IsConnected>
-          <IpAddressAllocationMode>'.$IpAddressAllocationMode.'</IpAddressAllocationMode>
-        </NetworkConnection>
-      </NetworkConnectionSection>
-    </InstantiationParams>
-
-  </Item>
-  <AllEULAsAccepted>true</AllEULAsAccepted>
-</ComposeVAppParams>';
-
-
-#  <Item>
-#    <Source href="http://vcloud.example.com/api/v1.0/vApp/vm-4"/>
-#    <InstantiationParams>
-#      <NetworkConnectionSection
-#        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
-#        href="http://vcloud.example.com/api/v1.0/vApp/vm-4/
-#        networkConnectionSection/" ovf:required="false">
-#        <ovf:Info/>
-#        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
-#        <NetworkConnection network="CRMApplianceNetwork">
-#          <NetworkConnectionIndex>0</NetworkConnectionIndex>
-#          <IsConnected>true</IsConnected>
-#          <IpAddressAllocationMode>DHCP</IpAddressAllocationMode>
-#        </NetworkConnection>
-#      </NetworkConnectionSection>
-#    </InstantiationParams>
-#  </Item>
-#  <Item>
-#    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-114"/>
-#  </Item>
-
-#my $ret = $self->{api}->post($url,'application/vnd.vmware.vcloud.composeVAppParams+xml',$xml);
-
-my $xml = '
-<InstantiateVAppTemplateParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" >
-	<Description>Example FTP Server vApp</Description>
-	<InstantiationParams>
-		<NetworkConfigSection>
-			<ovf:Info>Configuration parameters for vAppNetwork</ovf:Info>
-			<NetworkConfig networkName="vAppNetwork">
-				<Configuration>
-					<ParentNetwork href="'.$netid.'"/>
-					<FenceMode>'.$fencemode.'</FenceMode>
-				</Configuration>
-			</NetworkConfig>
-		</NetworkConfigSection>
-	</InstantiationParams>
-	<Source href="'.$template{href}.'"/>
-</InstantiateVAppTemplateParams>
-';
-
-  return $self->{api}->post($url,'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml',$xml);
+  return $self->{api}->vapp_create($url,$name,$netid,'bridged',$template{href},'POOL',$vdcid,$tmplid);
 }
 
 =head2 get_vapp($vappid)
@@ -547,16 +474,17 @@ sub list_orgs {
   my $self = shift @_;
   my $orgs = our $cache->get('list_orgs:');
 
-  #unless ( defined $orgs ) {
+  unless ( defined $orgs ) {
     $orgs = {};
     my $ret = $self->{api}->org_list();
 
     for my $orgname ( keys %{$ret->{Org}} ) {
       warn "Org type of $ret->{Org}->{$orgname}->{type} listed for $orgname\n" unless $ret->{Org}->{$orgname}->{type} eq 'application/vnd.vmware.vcloud.org+xml';
-      $orgs->{$orgname} = $ret->{Org}->{$orgname}->{href};
+      my $href = $ret->{Org}->{$orgname}->{href};
+      $orgs->{$orgname} = $href;
     }
     $cache->set('list_orgs:',$orgs); 
-  #}
+  }
   
   return wantarray ? %$orgs : $orgs if defined $orgs;
 }

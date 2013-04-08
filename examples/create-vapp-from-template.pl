@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.2 $' )[1];
+my $version = ( split ' ', '$Revision: 1.3 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -26,16 +26,16 @@ my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
 die "Check the POD. This script needs command line parameters." unless
  $username and $password and $hostname;
 
-my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 3 } );
+my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 0 } );
 
 # Select an Org
 
 my %orgs = $vcd->list_orgs();
-my $orgid = &select_one("Select the Org you wish to create a vApp in:",\%orgs);
+my $orgid = &select_one("Select the Org you wish to create a vApp in:",\%orgs,1);
 
 # Select a VDC
 
-my %vdcs = $vcd->list_vdcs($orgid);
+my %vdcs = $vcd->list_vdcs($orgname);
 my $vdcid = &select_one("Select the Virtual Data Center you wish to create a vApp in:",\%vdcs);
 
 # Select a template
@@ -46,17 +46,22 @@ my $templateid = &select_one("Select the Template you wish to put in your vApp:"
 # Select network
 
 my %networks = $vcd->list_networks($vdcid);
-my $networkid = &select_one("Select the Network you wish the template to use in:",\%networks);
-
-print "$networks{$networkid}\n";
+my $networkid = &select_one("Select the Network you wish the template to use in:",\%networks,1);
 
 # Build the vApp
 
 my $name = 'Example vApp';
-
 my $ret = $vcd->create_vapp_from_template($name,$vdcid,$templateid,$networkid);
 
-print Dumper($ret);
+my $task_href = $ret->[2]->{Tasks}->[0]->{Task}->{task}->{href};
+
+# Wait on task to complete
+
+my ($status,$task) = $vcd->wait_on_task($task_href);
+
+print "STATUS: $status\n\n";
+print Dumper($task) if $status eq 'error';
+
 
 #### Subroutines
 
@@ -68,13 +73,16 @@ sub select_one {
   my %items = %{shift @_};
   my @items = sort { lc($items{$a}) cmp lc($items{$b}) } keys %items; # Put the names in alpha order
 
+  my $reverse = shift @_;
+
   my $line = '='x80;
   my $i = 1;
 
   print "$line\n\n$message\n";
 
   for my $item (@items) {
-    print "   $i. \"$items{$item}\"\n";
+    my $label = $reverse ? $item : $items{$item};
+    print "   $i. $label\n";
     $i++;
   }
 
@@ -84,5 +92,5 @@ sub select_one {
   chomp $id;
   $id -= 1;
 
-  return $items[$id];
+  return $reverse ? $items{$items[$id]} : $items[$id];
 }
