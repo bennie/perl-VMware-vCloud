@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.4 $' )[1];
+my $version = ( split ' ', '$Revision: 1.5 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -51,9 +51,7 @@ my $networkid = &select_one("Select the Network you wish the template to use in:
 # Build the vApp
 
 my $name = 'Example vApp';
-my $ret = $vcd->create_vapp_from_template($name,$vdcid,$templateid,$networkid);
-
-my $task_href = $ret->[2]->{Tasks}->[0]->{Task}->{task}->{href};
+my ($task_href,$ret) = $vcd->create_vapp_from_template($name,$vdcid,$templateid,$networkid);
 
 # Wait on task to complete
 

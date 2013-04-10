@@ -1312,10 +1312,65 @@ sub vdc_list {
   return $self->_xml_response($response);
 }
 
-=head2 vapp_create($url,$name,$netid,$fencemode,$template_href,$IpAddressAllocationMode,$vcdid,$tmplid)
+=head2 vapp_create_from_template($url,$name,$netid,$fencemode,$template_href,$IpAddressAllocationMode,$vcdid,$tmplid)
 
-Given a name, VDC, template and network, instantiate the template with the given
+Create a vapp from a vapp template.
+
+Given a name, VDC, template and network, instantiate the vapp template with the given
 settings and other defaults.
+
+* Fencemode can be: bridged, isolated, or natRouted
+* IP Allocation mode can be: NONE, MANUAL, POOL, DHCP
+
+An array(ref) is returned. The first element is the task href, if one was
+created. The second element is the HTTP reqest object returned by the server.
+
+=cut
+
+# http://pubs.vmware.com/vcd-51/index.jsp?topic=%2Fcom.vmware.vcloud.api.reference.doc_51%2Fdoc%2Ftypes%2FInstantiateVAppTemplateParamsType.html
+
+sub vapp_create_from_template {
+  my $self = shift @_;
+  my $url  = shift @_;
+  
+  my $name = shift @_;
+  my $netid = shift @_;
+  my $fencemode = shift @_;
+  my $template_href = shift @_;
+  my $IpAddressAllocationMode = shift @_;
+
+  my $vdcid  = shift @_;  
+  my $tmplid = shift @_;
+
+  $self->_debug("API: vapp_create($url)\n") if $self->{debug};
+
+  # XML to build
+
+  my $xml = '<InstantiateVAppTemplateParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" >
+	<Description>Example FTP Server vApp</Description>
+	<InstantiationParams>
+		<NetworkConfigSection>
+			<ovf:Info>Configuration parameters for vAppNetwork</ovf:Info>
+			<NetworkConfig networkName="vAppNetwork">
+				<Configuration>
+					<ParentNetwork href="'.$netid.'"/>
+					<FenceMode>'.$fencemode.'</FenceMode>
+				</Configuration>
+			</NetworkConfig>
+		</NetworkConfigSection>
+	</InstantiationParams>
+	<Source href="'.$template_href.'"/>
+  </InstantiateVAppTemplateParams>';
+
+  my $ret = $self->post($url,'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml',$xml);
+  my $task_href = $ret->[2]->{Tasks}->[0]->{Task}->{task}->{href};
+  return wantarray ? ( $task_href, $ret ) : \( $task_href, $ret );
+}
+
+=head2 vapp_create_from_sources($url,$name,$netid,$fencemode,$template_href,$IpAddressAllocationMode,$vcdid,$sourcesref)
+
+Given one or more source HREFs, such as VMs withing in an existing template or 
+a VM catalog item, create a vApp.
 
 Details of the create task will be returned.
 
@@ -1324,7 +1379,9 @@ Details of the create task will be returned.
 
 =cut
 
-sub vapp_create {
+# http://pubs.vmware.com/vcd-51/topic/com.vmware.vcloud.api.doc_51/GUID-9E04772F-2BA9-42A9-947D-4EE7A05A6EE0.html
+
+sub vapp_create_from_sources {
   my $self = shift @_;
   my $url  = shift @_;
   
@@ -1372,30 +1429,6 @@ my $xml = '<ComposeVAppParams name="'.$name.'" xmlns="http://www.vmware.com/vclo
   </Item>
   <AllEULAsAccepted>true</AllEULAsAccepted>
 </ComposeVAppParams>';
-
-
-#  <Item>
-#    <Source href="http://vcloud.example.com/api/v1.0/vApp/vm-4"/>
-#    <InstantiationParams>
-#      <NetworkConnectionSection
-#        type="application/vnd.vmware.vcloud.networkConnectionSection+xml"
-#        href="http://vcloud.example.com/api/v1.0/vApp/vm-4/
-#        networkConnectionSection/" ovf:required="false">
-#        <ovf:Info/>
-#        <PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
-#        <NetworkConnection network="CRMApplianceNetwork">
-#          <NetworkConnectionIndex>0</NetworkConnectionIndex>
-#          <IsConnected>true</IsConnected>
-#          <IpAddressAllocationMode>DHCP</IpAddressAllocationMode>
-#        </NetworkConnection>
-#      </NetworkConnectionSection>
-#    </InstantiationParams>
-#  </Item>
-#  <Item>
-#    <Source href="http://vcloud.example.com/api/v1.0/vAppTemplate/vappTemplate-114"/>
-#  </Item>
-
-#my $ret = $self->{api}->post($url,'application/vnd.vmware.vcloud.composeVAppParams+xml',$xml);
 
 my $xml = '
 <InstantiateVAppTemplateParams name="'.$name.'" xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" >

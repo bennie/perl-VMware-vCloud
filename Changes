@@ -6,9 +6,12 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Added:
+    VMware::vCloud - delete_vapp(), create_vapp_from_sources()
+    VMware::API::vCloud - vapp_create_from_sources(), vapp_create_from_template()
 
   Improved:
     Error's now die() with the returned "message" as well as the HTTP code.
+    VMware::vCloud - Cache is automatically purged on delete actions.
   
 2.32 2013-03-29
 

@@ -173,8 +173,57 @@ sub create_vapp_from_template {
   my $fencemode = 'bridged'; # bridged, isolated, or natRouted
   my $IpAddressAllocationMode = 'POOL'; # NONE, MANUAL, POOL, DHCP
 
-  return $self->{api}->vapp_create($url,$name,$netid,'bridged',$template{href},'POOL',$vdcid,$tmplid);
+  return $self->{api}->vapp_create_from_template($url,$name,$netid,'bridged',$template{href},'POOL',$vdcid,$tmplid);
 }
+
+=head2 create_vapp_from_sources(...)
+
+Create a vApp from varied sources
+
+Details of the create task will be returned.
+
+=cut
+
+# bridged, isolated, or natRouted
+# NONE, MANUAL, POOL, DHCP
+
+sub create_vapp_from_sources {
+  my $self = shift @_;
+  my $name = shift @_;
+
+  my $vdcid  = shift @_;  
+  my $tmplid = shift @_;
+  my $netid  = shift @_;
+  
+  my %template = $self->get_template($tmplid);
+  my %vdc = $self->get_vdc($vdcid);
+
+  my @links = @{$vdc{Link}};
+  my $url;
+
+  for my $ref (@links) {
+    #$url = $ref->{href} if $ref->{type} eq 'application/vnd.vmware.vcloud.composeVAppParams+xml';
+    $url = $ref->{href} if $ref->{type} eq 'application/vnd.vmware.vcloud.instantiateVAppTemplateParams+xml';
+  }
+
+  my $fencemode = 'bridged'; # bridged, isolated, or natRouted
+  my $IpAddressAllocationMode = 'POOL'; # NONE, MANUAL, POOL, DHCP
+
+  return $self->{api}->vapp_create_from_sources($url,$name,$netid,'bridged',$template{href},'POOL',$vdcid,$tmplid);
+}
+=head2 delete_vapp($vapp_href)
+
+Given the org HREF, call a delete on it.
+
+=cut
+
+sub delete_vapp {
+  my $self = shift @_;
+  my $href = shift @_;
+  $self->purge(); # Clear cache when deleting
+  return $self->{api}->delete($href);
+}
+
 
 =head2 get_vapp($vappid)
 
@@ -341,6 +390,7 @@ Given the org HREF, call a delete on it.
 sub delete_catalog {
   my $self = shift @_;
   my $href = shift @_;
+  $self->purge(); # Clear cache when deleting  
   return $self->{api}->delete($href);
 }
 
@@ -365,6 +415,7 @@ Given the org HREF, call a delete on it.
 sub delete_org {
   my $self = shift @_;
   my $href = shift @_;
+  $self->purge(); # Clear cache when deleting  
   return $self->{api}->delete($href);
 }
 
@@ -377,6 +428,7 @@ Given the org network HREF, call a delete on it.
 sub delete_org_network {
   my $self = shift @_;
   my $href = shift @_;
+  $self->purge(); # Clear cache when deleting  
   return $self->{api}->delete($href);
 }
 
@@ -511,6 +563,7 @@ Given the org VDC HREF, call a delete on it.
 sub delete_vdc {
   my $self = shift @_;
   my $href = shift @_;
+  $self->purge(); # Clear cache when deleting
   return $self->{api}->delete($href);
 }
 
