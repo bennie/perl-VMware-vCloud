@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.3 $' )[1];
+my $version = ( split ' ', '$Revision: 1.4 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -59,9 +59,8 @@ my $task_href = $ret->[2]->{Tasks}->[0]->{Task}->{task}->{href};
 
 my ($status,$task) = $vcd->wait_on_task($task_href);
 
-print "STATUS: $status\n\n";
-print Dumper($task) if $status eq 'error';
-
+print "\nSTATUS: $status\n";
+print "\n" . Dumper($task) if $status eq 'error';
 
 #### Subroutines
 

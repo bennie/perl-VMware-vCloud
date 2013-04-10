@@ -175,8 +175,12 @@ sub _fault {
   my $message = "\nERROR: ";
   
   if ( length(@error) and ref $error[0] eq 'HTTP::Response' ) {
-    $message .= $error[0]->status_line;    
-    $self->_debug( Dumper(\@error) );
+    $message .= $error[0]->status_line;
+    if ( $error[0]->content ) {
+      $self->_debug(Dumper(\@error));
+      my $ret = $self->_parse_xml($error[0]->content);
+      $message .= ' : '. $ret->{message};
+    }
     die $message;
   }
   
@@ -208,11 +212,17 @@ sub _xml_response {
   $self->_debug_with_level(3,"Received XML Content: \n\n" . $response->content . "\n\n");
   if ( $response->is_success ) {
     return undef unless $response->content;
-    my $data = XMLin( $response->content, ForceArray => 1 );
-    return $data;
+    return $self->_parse_xml( $response->content );
   } else {
     $self->_fault($response);
   }
+}
+
+sub _parse_xml {
+  my $self = shift @_;
+  my $xml  = shift @_;
+  my $data = XMLin( $xml, ForceArray => 1 );
+  return $data;
 }
 
 =head1 REST METHODS

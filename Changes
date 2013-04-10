@@ -2,7 +2,15 @@ Revision history for VMware::vCloud
 
 NB: Skipped version numbers were never released.
 
+
 VERSIONTAG DATETAG
+
+  Added:
+
+  Improved:
+    Error's now die() with the returned "message" as well as the HTTP code.
+  
+2.32 2013-03-29
 
   Added:
     VMware::vCloud - get_task(), list_pvdcs(), wait_on_task()
