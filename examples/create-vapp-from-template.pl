@@ -16,7 +16,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.5 $' )[1];
+my $version = ( split ' ', '$Revision: 1.6 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -26,7 +26,7 @@ my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
 die "Check the POD. This script needs command line parameters." unless
  $username and $password and $hostname;
 
-my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 0 } );
+my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 3 } );
 
 # Select an Org
 

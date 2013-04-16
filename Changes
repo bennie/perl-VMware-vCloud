@@ -2,8 +2,20 @@ Revision history for VMware::vCloud
 
 NB: Skipped version numbers were never released.
 
-
 VERSIONTAG DATETAG
+
+  Added:
+    VMware::API::vCloud - vapp_recompose_add_vm()
+
+  Improved:
+    VMware::vCloud - get_template() - now returns hash or hashref in context
+    VMware::API::vCloud - admin(), admin_extension_get(),
+      admin_extension_vimServer_get(), catalog_get(), catalog_get_access(),
+      org_get(), org_list(), pvdc_get(), task_get(), template_get(), 
+      template_get_metadata(), vdc_get(), vdc_list(), vapp_get(), 
+      vapp_get_metadata() - now use the core get() method
+
+v2.360 2013-04-09
 
   Added:
     VMware::vCloud - delete_vapp(), create_vapp_from_sources()
@@ -12,6 +24,8 @@ VERSIONTAG DATETAG
   Improved:
     Error's now die() with the returned "message" as well as the HTTP code.
     VMware::vCloud - Cache is automatically purged on delete actions.
+    VMware::API::vCloud - org_get(), org_list(), vapp_get(), vdc_get() - now use the core get() method
+    VMware::API::vCloud - get() now has level-3 debug of the request header
   
 2.32 2013-03-29
 

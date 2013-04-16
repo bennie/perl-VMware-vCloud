@@ -91,6 +91,10 @@ sub power_off {
 
 }
 
+sub recompose {
+  
+}
+
 1;
 
 __END__

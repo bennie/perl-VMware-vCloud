@@ -197,7 +197,7 @@ sub _fault {
 sub _regenerate {
   my $self = shift @_;  
   $self->{ua} = LWP::UserAgent->new;
-  $self->_debug("VMware::API::vCLoud::_regenerate()",2);
+  $self->_debug_with_level(2,"VMware::API::vCLoud::_regenerate()");
 
   $self->{api_version} = $self->api_version();
   $self->_debug("API Version: $self->{api_version}");
@@ -257,7 +257,11 @@ sub get {
   $self->_debug("API: get($url)\n") if $self->{debug};
   my $req = HTTP::Request->new( GET => $url );
   $req->header( Accept => $self->{learned}->{accept_header} );
+  #$self->_debug_with_level(3,"Sending GET: \n\n" . $req->as_string . "\n");
   my $response = $self->{ua}->request($req);
+  my $check = $response->request;  
+  $self->_debug_with_level(3,"Sent GET:\n\n" . $check->as_string . "\n");
+  $self->_debug_with_level(3,"GET returned:\n\n" . $response->as_string . "\n");
   return $self->_xml_response($response);
 }
 
@@ -273,7 +277,11 @@ sub get_raw {
   $self->_debug("API: get($url)\n") if $self->{debug};
   my $req = HTTP::Request->new( GET => $url );
   $req->header( Accept => $self->{learned}->{accept_header} );
+  #$self->_debug_with_level(3,"Sending GET: \n\n" . $req->as_string . "\n");
   my $response = $self->{ua}->request($req);
+  my $check = $response->request;  
+  $self->_debug_with_level(3,"Sent GET:\n\n" . $check->as_string . "\n");
+  $self->_debug_with_level(3,"GET returned:\n\n" . $response->as_string . "\n");
   return $response->content;
 }
 
@@ -469,14 +477,10 @@ the API.
 
 sub admin {
   my $self = shift @_;
-  my $req = HTTP::Request->new( GET =>  $self->{learned}->{url}->{admin} );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
   $self->_debug("API: admin()\n") if $self->{debug};
   return $self->{learned}->{admin} if defined $self->{learned}->{admin};
 
-  my $response = $self->{ua}->request($req);
-  my $parsed = $self->_xml_response($response);
+  my $parsed = $self->get($self->{learned}->{url}->{admin});
 
   $self->{learned}->{admin}->{networks} = $parsed->{Networks}->[0]->{Network};
   $self->{learned}->{admin}->{rights}   = $parsed->{RightReferences}->[0]->{RightReference};
@@ -496,12 +500,7 @@ sub admin {
 sub admin_extension_get {
   my $self = shift @_;
   $self->_debug("API: admin_extension_get()\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{admin} . 'extension' );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);  
+  return $self->get( $self->{learned}->{url}->{admin} . 'extension' );
 }
 
 =head2 admin_extension_vimServer_get()
@@ -510,15 +509,9 @@ sub admin_extension_get {
 
 sub admin_extension_vimServer_get {
   my $self = shift @_;
-  my $url  = shift @_;
-  
-  $self->_debug("API: admin_extension_vimServer_get()\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $url );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);  
+  my $url  = shift @_;  
+  $self->_debug("API: admin_extension_vimServer_get($url)\n") if $self->{debug};
+  return $self->get($url);
 }
 
 
@@ -529,12 +522,7 @@ sub admin_extension_vimServer_get {
 sub admin_extension_vimServerReferences_get {
   my $self = shift @_;
   $self->_debug("API: admin_extension_vimServerReferences_get()\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{admin} . 'extension/vimServerReferences' );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);  
+  return $self->get( $self->{learned}->{url}->{admin} . 'extension/vimServerReferences' );
 }
 
 =head2 catalog_create($org_href,$conf)
@@ -591,20 +579,8 @@ It returns the requested catalog.
 sub catalog_get {
   my $self = shift @_;
   my $cat  = shift @_;
-  my $req;
-
   $self->_debug("API: catalog_get($cat)\n") if $self->{debug};
-  
-  if ( $cat =~ /^[^\/]+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'catalog/' . $cat );
-  } else {
-    $req = HTTP::Request->new( GET =>  $cat );
-  }
-
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $cat =~ /^[^\/]+$/ ? $self->{url_base} . 'catalog/' . $cat : $cat );
 }
 
 =head2 catalog_get_access($cat_href,$org_href)
@@ -625,12 +601,7 @@ sub catalog_get_access {
   $href =~ s/admin\///;
   
   $self->_debug("API: catalog_get_access($href)\n") if $self->{debug};
-  
-  my $req = HTTP::Request->new( GET => $href );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get($href);
 }
 
 =head2 catalog_set_access($cat_href,$org_href,$is_shared,$level)
@@ -779,17 +750,7 @@ sub org_get {
   my $req;
 
   $self->_debug("API: org_get($org)\n") if $self->{debug};
-  
-  if ( $org =~ /^[^\/]+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'org/' . $org );
-  } else {
-    $req = HTTP::Request->new( GET =>  $org );
-  }
-
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $org =~ /^[^\/]+$/ ? $self->{url_base} . 'org/' . $org : $org );
 }
 
 =head2 org_list()
@@ -801,12 +762,7 @@ Returns the full list of available organizations.
 sub org_list {
   my $self = shift @_;
   $self->_debug("API: org_list()\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{orglist} );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get($self->{learned}->{url}->{orglist});
 }
 
 =head2 org_network_create($url,$conf)
@@ -1179,20 +1135,8 @@ sub org_vdc_update {
 sub pvdc_get {
   my $self = shift @_;
   my $tmpl = shift @_;
-  my $req;
-
   $self->_debug("API: pvdc_get($tmpl)\n") if $self->{debug};
-  
-  if ( $tmpl =~ /^[^\/]+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'tmpl/' . $tmpl );
-  } else {
-    $req = HTTP::Request->new( GET =>  $tmpl );
-  }
-
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $tmpl =~ /^[^\/]+$/ ? $self->{url_base} . 'tmpl/' . $tmpl : $tmpl );
 }
 
 =head2 task_get($href)
@@ -1207,12 +1151,7 @@ sub task_get {
   my $self = shift @_;
   my $href = shift @_;
   $self->_debug("API: task_get($href)\n") if $self->{debug};
-  
-  my $req = HTTP::Request->new( GET => $href );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get($href);
 }
 
 
@@ -1229,20 +1168,8 @@ It returns the requested template.
 sub template_get {
   my $self = shift @_;
   my $tmpl = shift @_;
-  my $req;
-
   $self->_debug("API: template_get($tmpl)\n") if $self->{debug};
-  
-  if ( $tmpl =~ /^[^\/]+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'tmpl/' . $tmpl );
-  } else {
-    $req = HTTP::Request->new( GET =>  $tmpl );
-  }
-
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( /^[^\/]+$/ ? $self->{url_base} . 'tmpl/' . $tmpl : $tmpl );
 }
 
 =head2 template_get_metadata($tmpl_href)
@@ -1259,14 +1186,8 @@ sub template_get_metadata {
   my $self = shift @_;
   my $href = shift @_;  
   $self->_debug("API: template_get_metadata($href)\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $href . '/metadata' );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $href . '/metadata' );
 }
-
 
 =head2 vdc_get($vdcid or $vdcurl)
 
@@ -1279,20 +1200,8 @@ It returns the requested VDC.
 sub vdc_get {
   my $self = shift @_;
   my $vdc  = shift @_;
-  my $req;
-  
   $self->_debug("API: vdc_get($vdc)\n") if $self->{debug};
-
-  if ( $vdc =~ /^[^\/]+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vdc/' . $vdc );
-  } else {
-    $req = HTTP::Request->new( GET =>  $vdc );
-  }
-
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( /^[^\/]+$/ ? $self->{url_base} . 'vdc/' . $vdc : $vdc );
 }
 
 =head2 vdc_list()
@@ -1304,12 +1213,7 @@ Returns the full list of available VDCs.
 sub vdc_list {
   my $self = shift @_;
   $self->_debug("API: vdc_list()\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $self->{learned}->{url}->{admin} . 'vdcs/query' );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $self->{learned}->{url}->{admin} . 'vdcs/query' );
 }
 
 =head2 vapp_create_from_template($url,$name,$netid,$fencemode,$template_href,$IpAddressAllocationMode,$vcdid,$tmplid)
@@ -1465,17 +1369,7 @@ sub vapp_get {
   my $req;
   
   $self->_debug("API: vapp_get($vapp)\n") if $self->{debug};
-
-  if ( $vapp =~ /^[^\/]+$/ ) {
-    $req = HTTP::Request->new( GET =>  $self->{url_base} . 'vApp/vapp-' . $vapp );
-  } else {
-    $req = HTTP::Request->new( GET =>  $vapp );
-  }
-
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $vapp =~ /^[^\/]+$/ ? $self->{url_base} . 'vApp/vapp-' . $vapp : $vapp );
 }
 
 =head2 vapp_get_metadata($vapp_href)
@@ -1492,14 +1386,46 @@ sub vapp_get_metadata {
   my $self = shift @_;
   my $href = shift @_;  
   $self->_debug("API: vapp_get_metadata($href)\n") if $self->{debug};
-
-  my $req = HTTP::Request->new( GET => $href . '/metadata' );
-  $req->header( Accept => $self->{learned}->{accept_header} );
-
-  my $response = $self->{ua}->request($req);
-  return $self->_xml_response($response);
+  return $self->get( $href . '/metadata' );
 }
 
+=head2 vapp_recompose_add_vm($href,$vapp_name,$vapp_href,$vm_name_to_be,$vm_current_href)
+
+Returns a task.
+
+VM should be powered off to work.
+
+=cut
+
+# POST /vApp/{id}/action/recomposeVApp
+# http://www.vmware.com/support/vcd/doc/rest-api-doc-1.5-html/types/RecomposeVAppParamsType.html
+
+sub vapp_recompose_add_vm {
+  my $self = shift @_;
+  my $vapp_name = shift @_;
+  my $vapp_href = shift @_;
+  my $vm_name = shift @_;
+  my $vm_href = shift @_;
+  
+  my $network = shift @_;
+  my $storageProfile = shift @_;
+      
+  my $desc = '';
+ 
+  my $xml = '<RecomposeVAppParams xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" >
+    <Description>'.$desc.'</Description>
+    <SourcedItem sourceDelete="0">
+        <Source href="'.$vm_href.'" name="'.$vm_name.'" />
+    </SourcedItem>
+    <AllEULAsAccepted> 1 </AllEULAsAccepted>
+    <CreateItem href="'.$vapp_href.'" name="'.$vapp_name.'">
+        <Description>".$desc."</Description>
+        <StorageProfile href="'.$storageProfile.'"/>
+    </CreateItem>
+</RecomposeVAppParams>';
+
+  return $self->post($vapp_href . '/action/recomposeVApp','application/vnd.vmware.vcloud.recomposeVAppParams+xml',$xml);
+}
 
 1;
 

@@ -79,7 +79,7 @@ sub new {
 
   our $cache = new Cache::Bounded;
 
-  $self->{api} = new VMware::API::vCloud (our $host, our $user, our $pass, our $org, our $conf);
+  $self->{api} = new VMware::API::vCloud ($host,$user,$pass,$org,$conf);
   $self->{raw_login_data} = $self->{api}->login();
 
   return $self;
@@ -316,7 +316,7 @@ sub get_template {
   #}
 
   $cache->set('get_template:'.$id,\%tmpl);
-  return %tmpl;
+  return ( wantarray ? %tmpl : \%tmpl );
 }
 
 =head2 list_templates()
