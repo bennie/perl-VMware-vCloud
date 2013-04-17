@@ -1169,7 +1169,7 @@ sub template_get {
   my $self = shift @_;
   my $tmpl = shift @_;
   $self->_debug("API: template_get($tmpl)\n") if $self->{debug};
-  return $self->get( /^[^\/]+$/ ? $self->{url_base} . 'tmpl/' . $tmpl : $tmpl );
+  return $self->get( $tmpl =~ /^[^\/]+$/ ? $self->{url_base} . 'tmpl/' . $tmpl : $tmpl );
 }
 
 =head2 template_get_metadata($tmpl_href)
@@ -1201,7 +1201,7 @@ sub vdc_get {
   my $self = shift @_;
   my $vdc  = shift @_;
   $self->_debug("API: vdc_get($vdc)\n") if $self->{debug};
-  return $self->get( /^[^\/]+$/ ? $self->{url_base} . 'vdc/' . $vdc : $vdc );
+  return $self->get( $vdc =~ /^[^\/]+$/ ? $self->{url_base} . 'vdc/' . $vdc : $vdc );
 }
 
 =head2 vdc_list()
@@ -1432,6 +1432,27 @@ sub vapp_recompose_add_vm {
 __END__
 
 =head1 BUGS and LIMITATIONS
+
+=head3 Which "name" is which when recomposing a vApp
+
+The docs on recomosing a vApp (URL below) refer to a name as an attribute of
+RecomposeVAppParams, a name as an arrtributed of the SourcedItem, and a name
+as an attribute of CreateItem or DeleteItem.
+
+I believe the official description of all three is "A name as parameter."
+
+Here's what they do when inserting a VM into an existing vApp:
+
+RecomposeVAppParams name attribute - names the task. (I think)
+
+SourcedItem name attribute - The name the new VM will be when put into the vApp. 
+(Note that the "href" attribute right next to it will reference the CURRENT 
+location the VM is being copied from. Got that? One attribute is for the 
+"from" side of the action, and the other is for the "to" side. Clear as mud?)
+
+CreateItem attribute - The name of the container vApp that is being edited. If
+you change the name, but retain the href for the vApp, it will rename the vApp
+to the new name.
 
 =head3 LoginUrl error.
 

@@ -17,7 +17,7 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -29,6 +29,6 @@ die "Check the POD. This script needs command line parameters." unless
 
 my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
 
-my %vms = $vcd->list_templates();
+my %templates = $vcd->list_templates();
 
-print "\n", Dumper(\%vms);
+print "\n", Dumper(\%templates);
