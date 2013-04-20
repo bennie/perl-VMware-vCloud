@@ -1,12 +1,12 @@
 #!/usr/bin/perl -I../lib
-=head1 list-vapps.pl
+=head1 get-template.pl
 
-This example script uses the API to list all vApps that the user has ability to 
-access.
+This example script uses the API to return the information on an available 
+template.
 
 =head2 Usage
 
-  ./list-vapps.pl --username USER --password PASS --orgname ORG --hostname HOST
+  ./list-templates.pl --username USER --password PASS --orgname ORG --hostname HOST
   
 Orgname is optional. It will default to "System" if not given. 
 
@@ -18,7 +18,7 @@ use Term::Prompt;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.5 $' )[1];
+my $version = ( split ' ', '$Revision: 1.1 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -32,6 +32,9 @@ $orgname  = prompt('x','Orgname:', '', 'System' ) unless length $orgname;
 
 my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
 
-my %vapps = $vcd->list_vapps();
+my %templates = $vcd->list_templates();
+my $href = ( keys % templates )[0];
 
-print "\n", Dumper(\%vapps);
+my %template = $vcd->get_template($href);
+
+print "\n", Dumper(\%template);

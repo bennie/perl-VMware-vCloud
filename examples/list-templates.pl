@@ -17,15 +17,23 @@ use Getopt::Long;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.2 $' )[1];
+use Data::Dumper;
+use Getopt::Long;
+use Term::Prompt;
+use VMware::vCloud;
+use strict;
+
+my $version = ( split ' ', '$Revision: 1.3 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
 my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
                        'orgname=s' => \$orgname, 'hostname=s' => \$hostname );
 
-die "Check the POD. This script needs command line parameters." unless
- $username and $password and $hostname;
+$hostname = prompt('x','Hostname of the vCloud Server:', '', '' ) unless length $hostname;
+$username = prompt('x','Username:', '', undef ) unless length $username;
+$password = prompt('p','Password:', '', undef ) and print "\n" unless length $password;
+$orgname  = prompt('x','Orgname:', '', 'System' ) unless length $orgname;
 
 my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
 

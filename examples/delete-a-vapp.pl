@@ -20,7 +20,7 @@ use Term::Prompt;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.2 $' )[1];
+my $version = ( split ' ', '$Revision: 1.3 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -29,16 +29,19 @@ my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
 
 $hostname = prompt('x','Hostname of the vCloud Server:', '', '' ) unless length $hostname;
 $username = prompt('x','Username:', '', undef ) unless length $username;
-$password = prompt('p','Password:', '', undef ) unless length $password;
+$password = prompt('p','Password:', '', undef ) and print "\n" unless length $password;
 $orgname  = prompt('x','Orgname:', '', 'System' ) unless length $orgname;
 
-my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 0 } );
+my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 1 } );
+
+# Select a VM to delete
 
 my %vapps = $vcd->list_vapps();
 my @href = keys %vapps;
 
-print "\nSelect a vApp:\n\n";
+die "There seem to be no vApps to delete.\n" unless scalar(@href) > 0;
 
+print "\nSelect a vApp:\n\n";
 my $c = 0;
 for my $href (@href) {
   print $c++, ". $vapps{$href}\n";
@@ -46,6 +49,8 @@ for my $href (@href) {
 $c--;
 
 my $num = prompt('r', 'Select a vApp to delete: ', 'CTRL-C to EXIT', undef, 0, $c );
+
+# Delete it
 
 print "Deleting $vapps{$href[$num]}...\n";
 
