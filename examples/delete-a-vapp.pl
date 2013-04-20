@@ -1,31 +1,36 @@
 #!/usr/bin/perl -I../lib
 =head1 delete-a-vapps.pl
 
-This example script uses the API to list all vApps that the user has ability to 
-access.
+This example script uses the API to offer a list of vApps and to delete the 
+user-selected selected vApp.
 
 =head2 Usage
 
   ./list-vapps.pl --username USER --password PASS --orgname ORG --hostname HOST
   
-Orgname is optional. It will default to "System" if not given. 
+NB: "System" is the orgname for sysadmin actions and access.
+
+If a value is not provided in the command line, it will be asked for on STDIN.
 
 =cut
 
 use Data::Dumper;
 use Getopt::Long;
+use Term::Prompt;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
 my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
                        'orgname=s' => \$orgname, 'hostname=s' => \$hostname );
 
-die "Check the POD. This script needs command line parameters." unless
- $username and $password and $hostname;
+$hostname = prompt('x','Hostname of the vCloud Server:', '', '' ) unless length $hostname;
+$username = prompt('x','Username:', '', undef ) unless length $username;
+$password = prompt('p','Password:', '', undef ) unless length $password;
+$orgname  = prompt('x','Orgname:', '', 'System' ) unless length $orgname;
 
 my $vcd = new VMware::vCloud ( $hostname, $username, $password, $orgname, { debug => 0 } );
 
@@ -36,11 +41,11 @@ print "\nSelect a vApp:\n\n";
 
 my $c = 0;
 for my $href (@href) {
-  print $c++, ". $vapps{$href} ($href)\n";
+  print $c++, ". $vapps{$href}\n";
 }
+$c--;
 
-my $num = <STDIN>;
-chomp $num;
+my $num = prompt('r', 'Select a vApp to delete: ', 'CTRL-C to EXIT', undef, 0, $c );
 
 print "Deleting $vapps{$href[$num]}...\n";
 
@@ -48,6 +53,6 @@ my $ret = $vcd->delete_vapp($href[$num]);
 my $task = $ret->{href};
 
 my ($val,$ref) = $vcd->wait_on_task($task);
-print "$val\n";
+print "  $val\n";
 
-print Dumper($ref);
+print Dumper($ref) unless $val eq 'success';
