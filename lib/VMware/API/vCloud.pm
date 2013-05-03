@@ -646,6 +646,20 @@ sub catalog_set_access {
   return $ret;
 }
 
+=head2 datastore_list()
+
+Connect to the System group for this query to work.
+
+Returns a hash(ref) or datastore information.
+
+=cut
+
+sub datastore_list {
+  my $self = shift @_;
+  my $query_url = $self->{learned}->{url}->{query} . '?type=datastore&format=idrecords';
+  return $self->get($query_url);
+}
+
 =head2 org_create($name,$desc,$fullname,$is_enabled)
 
 Create an organization.

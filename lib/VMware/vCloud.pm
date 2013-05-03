@@ -801,6 +801,40 @@ sub get_task {
   return $self->{api}->task_get($href);
 }
 
+=head3 progress_of_task($task_href)
+
+  my ($percent,$status) = $vcd->progress_of_task($task_href)
+
+Returns the approximate percentage of completion of the task as an integer
+between 1 and 101.
+
+The text status of the task is returned as well:
+
+* queued - The task has been queued for execution.
+* preRunning - The task is awaiting preprocessing or administrative action.
+* running - The task is running.
+* success - The task completed with a status of success.
+* error - The task encountered an error while running.
+* cancelled - The task was canceled by the owner or an administrator.
+* aborted - The task was aborted by an administrative action.
+
+=cut
+
+sub progress_of_task {
+  my $self = shift @_;
+  my $href = shift @_;  
+
+  my $task = $self->get_task($href);
+  my $status = $task->{status};
+ 
+  if ( $status eq 'queued' or $status eq 'preRunning' or $status eq 'running' or $status eq 'success' ) {
+    return ( $task->{Progress}->[0], $status );
+    die Dumper($task);
+  }  
+
+  return ( (defined $task->{Progress}->[0] ? $task->{Progress}->[0] : 101), $status );
+}
+
 =head3 wait_on_task($href)
 
 Given a task href, this method will query the task every second, and only
@@ -911,6 +945,20 @@ Returns the data structure for the admin extensions available.
 sub extensions {
   my $self = shift @_;
   return $self->{api}->admin_extension_get();
+}
+
+=head2 list_datastores()
+
+Requires using a sysadmin account and attaching to the System org.
+
+Returns a hash(ref) of datastore information.
+
+=cut
+
+sub list_datastores {
+  my $self = shift @_;
+  my $ret = $self->{api}->datastore_list();  
+  return wantarray ? %{$ret->{DatastoreRecord}} : $ret->{DatastoreRecord};
 }
 
 =head3 list_external_networks()
