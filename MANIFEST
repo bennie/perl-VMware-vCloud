@@ -4,10 +4,16 @@ MANIFEST
 META.yml
 README
 TODO
+examples/compose-vapp.pl
 examples/create-vapp-from-template.pl
+examples/delete-a-vapp.pl
+examples/get-template.pl
 examples/login.pl
+examples/list-datastores.pl
+examples/list-providervdcs.pl
 examples/list-templates.pl
 examples/list-vapps.pl
+examples/login.pl
 examples/org_get.pl
 examples/poweron-vapp.pl
 lib/VMware/API/vCloud.pm
