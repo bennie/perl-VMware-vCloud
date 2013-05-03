@@ -4,6 +4,11 @@ NB: Skipped version numbers were never released.
 
 VERSIONTAG DATETAG
 
+  Improved:
+    All examples are now actually bundled with distribution.
+
+v2.390 2013-05-03
+
   Added:
     examples/list-datastores.pl
     VMware::vCloud - list_datastores(), progress_of_task()

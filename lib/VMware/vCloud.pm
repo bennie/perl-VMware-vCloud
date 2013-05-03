@@ -1,10 +1,10 @@
 package VMware::vCloud;
 
+use strict;
 use Cache::Bounded;
 use Data::Dumper;
 use VMware::API::vCloud;
 use VMware::vCloud::vApp;
-use strict;
 
 our $VERSION = 'VERSIONTAG';
 
