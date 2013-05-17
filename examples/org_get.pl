@@ -21,7 +21,7 @@ use Term::Prompt;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.4 $' )[1];
+my $version = ( split ' ', '$Revision: 1.5 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
@@ -41,6 +41,6 @@ my $random_orgid = ( keys %$login_info )[0];
 
 print "\nSelected random ORG of: \"$login_info->{$random_orgid}\" ($random_orgid)\n\n";
 
-my %org = $vcd->get_org($random_orgid);
+my %org = $vcd->get_org($login_info->{$random_orgid});
 
 print "\n", Dumper(\%org);

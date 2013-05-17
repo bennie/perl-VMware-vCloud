@@ -1,8 +1,10 @@
 #!/usr/bin/perl -I../lib
 =head1 list-datastores.pl
 
-This example script uses the API to list all vApps that the user has ability to 
-access.
+This example script uses the API to list all datastores that the user has 
+ability to access.
+
+This query requires sysadmin access and using the System group.
 
 =head2 Usage
 
@@ -18,7 +20,7 @@ use Term::Prompt;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.1 $' )[1];
+my $version = ( split ' ', '$Revision: 1.2 $' )[1];
 
 my ( $username, $password, $hostname, $orgname );
 
