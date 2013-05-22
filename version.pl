@@ -1,5 +1,8 @@
 #!/usr/bin/perl
 
+# ./version.pl        : Prints the current tagged version number
+# ./version.pl --bump : Increments the version number, retags, and pushes the tags
+
 use strict;
 
 my $version; my $build;
@@ -18,7 +21,6 @@ if ( $ARGV[0] eq '--bump' ) {
   print &version();
 }
 
-
 sub build {
   $build = `git describe --long | tr '-' ' ' | awk '{ print \$2 }'`
     unless defined $build and length $build;
@@ -33,7 +35,7 @@ sub next {
   my $length = length($sub);
   $sub++;
   if ( length($sub) > $length ) {
-    warn "WARNING: Version length now larger! (From $length digits to ", 
+    warn "WARNING: Version length now larger! (From $length digits to ",
          length($sub), ")\n";
     $length = length($sub);
   }

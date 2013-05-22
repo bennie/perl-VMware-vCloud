@@ -3,7 +3,7 @@ set -e
 
 VERSION=`./version.pl`
 BUILD=`./version.pl --build`
-DATE=`date '+%Y/%m/%d'`
+DATE=`date '+%Y/%m/%d'` 
 YEAR=`date '+%Y'`
 TARDIR="VMware-vCloud-$VERSION";
 
