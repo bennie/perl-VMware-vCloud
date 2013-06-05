@@ -10,7 +10,7 @@ user-selected selected vApp.
   
 NB: "System" is the orgname for sysadmin actions and access.
 
-If a value is not provided in the command line, it will be asked for on STDIN.
+If a value is not provided in the command line, it will be asked for.
 
 =cut
 

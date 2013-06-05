@@ -74,7 +74,7 @@ sub select_one {
   my $line = '='x80;
   my $i = 1;
 
-  print "$line\n\n$message\n";
+  print "$line\n\n";
 
   for my $item (@items) {
     print "   $i. \"$items{$item}\"\n";
@@ -83,8 +83,7 @@ sub select_one {
 
   print "\n$line\n";
 
-  my $id = <STDIN>;
-  chomp $id;
+  my $id = prompt('n',$message, '', undef );
   $id -= 1;
 
   return $items[$id];

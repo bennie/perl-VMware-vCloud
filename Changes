@@ -5,6 +5,8 @@ NB: Skipped version numbers were never released.
 VERSIONTAG DATETAG
 
   Improved:
+    examples/compose-vapp.pl - Now uses Term::Prompt fully.
+    examples/create-vapp-from-template.pl - Now uses Term::Prompt fully.
     examples/poweron-vapp.pl - Now uses Term::Prompt fully.
 
 v2.400 2013-05-03
