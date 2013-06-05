@@ -40,7 +40,7 @@ my @vapps = sort { lc($vapps{$a}) cmp lc($vapps{$b}) } keys %vapps; # Put the na
 my $line = '='x80;
 my $i = 1;
 
-print "$line\n\nSelect a VM to power on:\n";
+print "$line\n\n";
 
 for my $vapp (@vapps) {
   print "   $i. \"$vapps{$vapp}\"\n";
@@ -49,8 +49,7 @@ for my $vapp (@vapps) {
 
 print "\n$line\n";
 
-my $id = <STDIN>;
-chomp $id;
+my $id = prompt('n','Select a VM to power on:', '', undef );
 $id -= 1;
 
 my $vappid = $vapps[$id];
