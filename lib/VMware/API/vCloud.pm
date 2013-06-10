@@ -175,11 +175,14 @@ sub _fault {
   my $message = "\nERROR: ";
   
   if ( length(@error) and ref $error[0] eq 'HTTP::Response' ) {
-    $message .= $error[0]->status_line;
     if ( $error[0]->content ) {
       $self->_debug(Dumper(\@error));
-      my $ret = $self->_parse_xml($error[0]->content);
-      $message .= ' : '. $ret->{message};
+      $self->_debug('ERROR Status Line: ' . $error[0]->status_line);
+      $self->_debug('ERROR Content: ' . $error[0]->content);
+
+      my $ret; # Try parsing as XML, or fallback to content as message
+      eval { $ret = $self->_parse_xml($error[0]->content); };
+      $message .= ( $@ ? $error[0]->content : $error[0]->status_line . ' : '. $ret->{message} );
     }
     die $message;
   }
