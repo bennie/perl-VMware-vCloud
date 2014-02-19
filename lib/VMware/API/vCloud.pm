@@ -426,6 +426,10 @@ sub login {
   $self->{ua}->default_header('x-vcloud-authorization', $token);
 
   $self->_debug( "Authentication status: " . $response->status_line );
+  if ( $response->status_line =~ /^4\d\d/ ) {
+    die "ERROR: Login Error: " . $response->status_line;
+  }
+
   $self->_debug( "Authentication token: " . $token );
 
   $self->{raw}->{login} = $self->_xml_response($response);
