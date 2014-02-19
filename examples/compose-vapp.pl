@@ -17,8 +17,6 @@ use Term::Prompt;
 use VMware::vCloud;
 use strict;
 
-my $version = ( split ' ', '$Revision: 1.6 $' )[1];
-
 my ( $username, $password, $hostname, $orgname );
 
 my $ret = GetOptions ( 'username=s' => \$username, 'password=s' => \$password,
