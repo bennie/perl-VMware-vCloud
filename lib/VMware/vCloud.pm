@@ -1052,11 +1052,32 @@ always be consistent between connections, but HREFs are considered permanent.
 Consequently, it is considered a best practice to use HREFs as the unique 
 identifier of an object. This module implements this best practice.
 
+=head1 DEPENDENCIES
+
+  Cache::Bounded
+  VMware::API::vCloud
+
+=head1 BUGS AND SOURCE
+
+	Bug tracking for this module: https://rt.cpan.org/Ticket/Display.html?id=?????
+
+	Source hosting: http://www.github.com/bennie/perl-VMware-vCloud
+
 =head1 VERSION
 
-  Version: VERSIONTAG (DATETAG)
+	VMware::vCloud vVERSIONTAG (DATETAG)
 
-=head1 AUTHOR
+=head1 COPYRIGHT
+
+	(c) ????-YEARTAG, Phillip Pollard <bennie@cpan.org>
+
+=head1 LICENSE
+
+This source code is released under the "Perl Artistic License 2.0," the text of
+which is included in the LICENSE file of this distribution. It may also be
+reviewed here: http://opensource.org/licenses/artistic-license-2.0
+
+=head1 AUTHORSHIP
 
   Phillip Pollard, <bennie@cpan.org>
 
@@ -1067,14 +1088,3 @@ and other such items.
 
   Dave Gress, <dgress@vmware.com> - Handling org admin issues and metadata
   Stuart Johnston, <sjohnston@cpan.org> - authentication and XML on API v1.0
-
-=head1 DEPENDENCIES
-
-  Cache::Bounded
-  VMware::API::vCloud
-
-=head1 LICENSE AND COPYRIGHT
-
-  Released under Perl Artistic License
-
-=cut

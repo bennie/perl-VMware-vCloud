@@ -426,6 +426,10 @@ sub login {
   $self->{ua}->default_header('x-vcloud-authorization', $token);
 
   $self->_debug( "Authentication status: " . $response->status_line );
+  if ( $response->status_line =~ /^4\d\d/ ) {
+    die "ERROR: Login Error: " . $response->status_line;
+  }
+
   $self->_debug( "Authentication token: " . $token );
 
   $self->{raw}->{login} = $self->_xml_response($response);
@@ -1505,11 +1509,32 @@ dearly love a few changes, that might help things:
 
 =back
 
+=head1 DEPENDENCIES
+
+  LWP
+  XML::Simple
+
+=head1 BUGS AND SOURCE
+
+	Bug tracking for this module: https://rt.cpan.org/Ticket/Display.html?id=?????
+
+	Source hosting: http://www.github.com/bennie/perl-VMware-vCloud
+
 =head1 VERSION
 
-  Version: VERSIONTAG (DATETAG)
+	VMware::API::vCloud vVERSIONTAG (DATETAG)
 
-=head1 AUTHOR
+=head1 COPYRIGHT
+
+	(c) ????-YEARTAG, Phillip Pollard <bennie@cpan.org>
+
+=head1 LICENSE
+
+This source code is released under the "Perl Artistic License 2.0," the text of
+which is included in the LICENSE file of this distribution. It may also be
+reviewed here: http://opensource.org/licenses/artistic-license-2.0
+
+=head1 AUTHORSHIP
 
   Phillip Pollard, <bennie@cpan.org>
 
@@ -1520,15 +1545,6 @@ and other such items.
 
   Dave Gress, <dgress@vmware.com> - Handling org admin issues and metadata
   Stuart Johnston, <sjohnston@cpan.org> - authentication and XML on API v1.0
-
-=head1 DEPENDENCIES
-
-  LWP
-  XML::Simple
-
-=head1 LICENSE AND COPYRIGHT
-
-  Released under Perl Artistic License
 
 =head1 SEE ALSO
 

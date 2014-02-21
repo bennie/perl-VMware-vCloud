@@ -99,16 +99,24 @@ sub recompose {
 
 __END__
 
+=head1 BUGS AND SOURCE
+
+	Bug tracking for this module: https://rt.cpan.org/Ticket/Display.html?id=?????
+
+	Source hosting: http://www.github.com/bennie/perl-VMware-vCloud
+
 =head1 VERSION
 
-  Version: VERSIONTAG (DATETAG)
+	VMware::vCloud::vApp vVERSIONTAG (DATETAG)
 
-=head1 AUTHOR
+=head1 COPYRIGHT
 
-  Phillip Pollard, <bennie@cpan.org>
+	(c) ????-YEARTAG, Phillip Pollard <bennie@cpan.org>
 
-=head1 LICENSE AND COPYRIGHT
+=head1 LICENSE
 
-  Released under Perl Artistic License
+This source code is released under the "Perl Artistic License 2.0," the text of
+which is included in the LICENSE file of this distribution. It may also be
+reviewed here: http://opensource.org/licenses/artistic-license-2.0
 
 =cut
