@@ -1516,7 +1516,7 @@ dearly love a few changes, that might help things:
 
 =head1 BUGS AND SOURCE
 
-	Bug tracking for this module: https://rt.cpan.org/Ticket/Display.html?id=?????
+	Bug tracking for this module: https://rt.cpan.org/Public/Dist/Display.html?Name=VMware-vCloud
 
 	Source hosting: http://www.github.com/bennie/perl-VMware-vCloud
 
@@ -1526,7 +1526,7 @@ dearly love a few changes, that might help things:
 
 =head1 COPYRIGHT
 
-	(c) ????-YEARTAG, Phillip Pollard <bennie@cpan.org>
+	(c) 2011-YEARTAG, Phillip Pollard <bennie@cpan.org>
 
 =head1 LICENSE
 
