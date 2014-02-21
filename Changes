@@ -9,6 +9,7 @@ VERSIONTAG DATETAG
     examples/compose-vapp.pl - Now uses Term::Prompt fully.
     examples/create-vapp-from-template.pl - Now uses Term::Prompt fully.
     examples/poweron-vapp.pl - Now uses Term::Prompt fully.
+    RCS 'Revisison' based version info removed from examples
 
 v2.400 2013-05-03
 
