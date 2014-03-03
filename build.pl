@@ -1,10 +1,18 @@
 #!/usr/bin/env perl
 
-require CPAN::Meta::YAML; # Do both YAML and JSON
-
 use Data::Dumper;
-use CPAN::Meta;
 use strict;
+
+# These will be necessary for Make Maker to make the module with proper files.
+require CPAN::Meta;
+require CPAN::Meta::Converter;
+require CPAN::Meta::YAML;
+require ExtUtils::MakeMaker;
+
+print "Using ExtUtils::MakeMaker ($ExtUtils::MakeMaker::VERSION)\n";
+print "Using CPAN::Meta ($CPAN::Meta::VERSION)\n";
+
+die "You need a modern version of ExtUtils::MakeMaker." unless $ExtUtils::MakeMaker::VERSION > 6;
 
 ### Config
 
@@ -29,9 +37,13 @@ my $bug  = 'https://rt.cpan.org/Dist/Display.html?Name='.$path_chunk;
 my $repo = 'http://github.com/bennie/perl-' . $path_chunk;
 my $git  = 'git://github.com/bennie/perl-'.$path_chunk.'.git';
 
+my $sourcefile = 'lib/' . $module . '.pm';
+$sourcefile =~ s/::/\//g;
+
 my $require_text = Dumper(\%requires);
 $require_text =~ s/\$VAR1 = //;
 $require_text =~ s/;$//;
+1 while chomp($require_text);
 
 ### Bump the version if asked
 
@@ -78,27 +90,27 @@ WriteMakefile(
   ( \$ExtUtils::MakeMaker::VERSION < 6.46
         ? ()
         : ( META_MERGE => {
+                'meta-spec' => { version => 2 },
+                no_index => {directory => [qw/t/]},
+                provides => {
+                     '$module' => {
+                          file    => '$sourcefile',
+                          version => '$version'
+                     }
+                },
+                release_status => 'stable',
                 requires  => {perl => '$perl_ver'},
                 resources => {
-                    # homepage => 'http://FIXME.org',
-                    # license  => 'http://dev.perl.org/licenses/',
-                    # MailingList => 'http://FIXME',
                     repository => {
                         type => 'git',
                         url  => '$git',
                         web  => '$repo',
                     },
                     bugtracker => {
-                        # mailto => '...',
                         web => '$bug',
                     },
 
                 },
-                no_index => {directory => [qw/t/]},
-            },
-            META_ADD => {
-                build_requires     => {},
-                configure_requires => {}
             },
         )
     )
@@ -111,56 +123,6 @@ close MAKEFILE;
 
 print `perl Makefile.PL`;
 print `make distmeta`;
-
-### Build META.json
-
-unless ( -f $distdir.'/META.json' ) {
-  my $distmeta = {
-
-    # Required
-    abstract => $abstract,
-    author   => [ $author ],
-    license  => [ $license ],
-    name     => $path_chunk,
-    version  => $version,
-
-    # optional
-    dynamic_config => 1,
-    'meta-spec' => { version => '2', url => 'http://search.cpan.org/perldoc?CPAN::Meta::Spec' },
-    generated_by => "CPAN::Meta version $CPAN::Meta::VERSION",
-
-    # 2.0 only stuff
-    description =>  $description,
-    release_status => 'stable',
-
-    prereqs => {
-      runtime => {
-        requires => \%requires,
-        recommends => { },
-      },
-      build => {
-        requires => \%requires,
-      }
-    },
-    resources => {
-      license    => [ 'http://dev.perl.org/licenses/' ],
-      bugtracker => { web => $bug },
-      repository => { web => $repo , type => 'git', url => $git },
-    },
-  };
-
-  $distmeta->{prereqs}->{runtime}->{requires}->{perl} = $perl_ver;
-
-  my $meta = CPAN::Meta->create($distmeta);
-  print "Generating META.json on my own.\n";
-  $meta->save($distdir.'/META.json');
-
-  print "Adding META.json to the MANIFEST\n";
-  open MANIFEST, '>>', $distdir.'/MANIFEST';
-  print MANIFEST "META.json\nMakefile.PL";
-  close MANIFEST;
-
-}
 
 ### Updating the tags
 
@@ -179,11 +141,18 @@ unlink($distdir.'.tar.gz') if -f $distdir.'.tar.gz';
 
 system "tar cvf $distdir.tar $distdir && gzip --best $distdir.tar";
 
+### META.json check
+
+warn "\nSomething is odd! We didn't build a META.json\n\n"
+  unless -f $distdir.'/META.json';
+
 ### Cleanup
 
 unlink('Makefile');
 unlink('Makefile.old');
 unlink('Makefile.PL');
+unlink('MYMETA.json');
+unlink('MYMETA.yml');
 
 print "\nDONE!\n";
 
