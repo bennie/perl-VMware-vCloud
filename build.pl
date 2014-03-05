@@ -113,7 +113,12 @@ WriteMakefile(
                 },
             },
         )
-    )
+    ),
+
+  ( \$ExtUtils::MakeMaker::VERSION < 6.48
+        ? ()
+        : ( MIN_PERL_VERSION => '$perl_ver' )
+  )
 
 );";
 
