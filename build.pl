@@ -1,7 +1,18 @@
 #!/usr/bin/env perl
 
 use Data::Dumper;
+use File::Slurp;
 use strict;
+
+### Handle version tasks if asked
+
+for my $arg (@ARGV) {
+  version_bump() and last if $arg eq '--bump';
+  if ( $arg eq '--retag'   ) { version_retag();  exit; }
+  if ( $arg eq '--version' ) { print version_current(), "\n"; exit; }
+}
+
+### Validate we have what we need to build
 
 # These will be necessary for Make Maker to make the module with proper files.
 require CPAN::Meta;
@@ -14,13 +25,15 @@ print "Using CPAN::Meta ($CPAN::Meta::VERSION)\n";
 
 die "You need a modern version of ExtUtils::MakeMaker." unless $ExtUtils::MakeMaker::VERSION > 6;
 
-### Config
+### Read the config.txt and try to process it
+
+die "No config.txt present." unless -f 'config.txt.';
 
 my ($module, $author,  $license, $abstract, $description, $perl_ver, %requires);
 
-open INFILE, '<', 'config.txt' or die "Can't open 'config.txt'";
-my $text = join('',<INFILE>);
-close INFILE;
+my $text = read_file('config.txt') ;
+1 while chomp $text;
+die "No config data." unless length $text;
 
 eval $text;
 die $@ if $@;
@@ -44,14 +57,6 @@ my $require_text = Dumper(\%requires);
 $require_text =~ s/\$VAR1 = //;
 $require_text =~ s/;$//;
 1 while chomp($require_text);
-
-### Bump the version if asked
-
-for my $arg (@ARGV) {
-  version_bump() and last if $arg eq '--bump';
-  if ( $arg eq '--retag'   ) { version_retag();  exit; }
-  if ( $arg eq '--version' ) { print version_current(), "\n"; exit; }
-}
 
 ### External data
 
@@ -99,7 +104,6 @@ WriteMakefile(
                      }
                 },
                 release_status => 'stable',
-                requires  => {perl => '$perl_ver'},
                 resources => {
                     repository => {
                         type => 'git',
