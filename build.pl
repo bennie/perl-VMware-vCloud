@@ -27,7 +27,7 @@ die "You need a modern version of ExtUtils::MakeMaker." unless $ExtUtils::MakeMa
 
 ### Read the config.txt and try to process it
 
-die "No config.txt present." unless -f 'config.txt.';
+die "No config.txt present." unless -f 'config.txt';
 
 my ($module, $author,  $license, $abstract, $description, $perl_ver, %requires);
 
