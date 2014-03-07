@@ -3,7 +3,7 @@ package VMware::vCloud::vApp;
 use Data::Dumper;
 use strict;
 
-our $VERSION = 'VERSIONTAG';
+$VMware::vCloud::vApp::VERSION = 'VERSIONTAG';
 
 =head1 NAME
 
