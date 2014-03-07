@@ -77,6 +77,24 @@ Dist    : $distdir
 
 ";
 
+### Figure out the provides
+
+my %provides; my $provides;
+
+for my $file ( `find lib -type f -name "*.pm"` ) {
+  chomp $file;
+  die "Can't figure out what is provided." unless $file =~ /^lib\/(.+).pm$/;
+  my $name = $1;
+  $name =~ s/\//::/g;
+  $provides{$name} = { file => $file, version => $version };
+}
+
+$provides = Dumper(\%provides);
+$provides =~ s/\$VAR1 = //;
+$provides =~ s/;$//;
+1 while chomp($provides);
+
+
 ### Write Makefile.PL
 
 open MAKEFILE, '>', 'Makefile.PL';
@@ -97,12 +115,10 @@ WriteMakefile(
         : ( META_MERGE => {
                 'meta-spec' => { version => 2 },
                 no_index => {directory => [qw/t/]},
-                provides => {
-                     '$module' => {
-                          file    => '$sourcefile',
-                          version => '$version'
-                     }
-                },
+                provides => 
+
+	$provides,
+
                 release_status => 'stable',
                 resources => {
                     repository => {
