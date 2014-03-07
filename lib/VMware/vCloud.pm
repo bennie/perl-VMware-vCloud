@@ -1,12 +1,14 @@
 package VMware::vCloud;
 
-use strict;
 use Cache::Bounded;
 use Data::Dumper;
 use VMware::API::vCloud;
 use VMware::vCloud::vApp;
 
-our $VERSION = 'VERSIONTAG';
+use strict;
+use warnings;
+
+$VMware::vCloud::VERSION = 'VERSIONTAG';
 
 =head1 NAME
 
