@@ -9,7 +9,6 @@ examples/compose-vapp.pl
 examples/create-vapp-from-template.pl
 examples/delete-a-vapp.pl
 examples/get-template.pl
-examples/login.pl
 examples/list-datastores.pl
 examples/list-providervdcs.pl
 examples/list-templates.pl
