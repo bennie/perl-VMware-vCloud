@@ -4,6 +4,9 @@ NB: Skipped version numbers were never released.
 
 VERSIONTAG DATETAG
 
+  Added:
+    POD test
+
   Improved:
     'use warnings' on all modules
 

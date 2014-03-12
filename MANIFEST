@@ -1,8 +1,9 @@
 Changes
 LICENSE
-Makefile.PL
 MANIFEST
+META.json
 META.yml
+Makefile.PL
 README
 TODO
 examples/compose-vapp.pl
@@ -19,5 +20,6 @@ examples/poweron-vapp.pl
 lib/VMware/API/vCloud.pm
 lib/VMware/vCloud.pm
 lib/VMware/vCloud/vApp.pm
+t/00-pod.t
 t/01-load.t
 t/02-header.t
