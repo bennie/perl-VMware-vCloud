@@ -3,6 +3,8 @@ package VMware::API::vCloud;
 use Data::Dumper;
 use LWP;
 use XML::Simple;
+
+use warnings;
 use strict;
 
 $VMware::API::vCloud::VERSION = 'VERSIONTAG';

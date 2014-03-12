@@ -5,8 +5,8 @@ use Data::Dumper;
 use VMware::API::vCloud;
 use VMware::vCloud::vApp;
 
-use strict;
 use warnings;
+use strict;
 
 $VMware::vCloud::VERSION = 'VERSIONTAG';
 

@@ -4,6 +4,11 @@ NB: Skipped version numbers were never released.
 
 VERSIONTAG DATETAG
 
+  Improved:
+    'use warnings' on all modules
+
+2.401 2014/03/06
+
   Added:
     LICENSE is part of the distribution now
 
@@ -16,7 +21,7 @@ VERSIONTAG DATETAG
     Directly declared VERSION variables
     Autogenerating META data for the modules
 
-v2.400 2013-05-03
+2.400 2013-05-03
 
   Improved:
     All examples are now actually bundled with distribution.
@@ -28,7 +33,7 @@ v2.390 2013-05-03
     VMware::vCloud - list_datastores(), progress_of_task()
     VMware::API::vCloud - datastore_list()
 
-v2.380 2013-04-17
+2.380 2013-04-17
 
   Added:
     examples/get-template.pl
@@ -43,7 +48,7 @@ v2.380 2013-04-17
  
   * Problem found by David Gress
 
-v2.370 2013-04-15
+2.370 2013-04-15
 
   Added:
     VMware::API::vCloud - vapp_recompose_add_vm()
@@ -56,7 +61,7 @@ v2.370 2013-04-15
       template_get_metadata(), vdc_get(), vdc_list(), vapp_get(), 
       vapp_get_metadata() - now use the core get() method
 
-v2.360 2013-04-09
+2.360 2013-04-09
 
   Added:
     VMware::vCloud - delete_vapp(), create_vapp_from_sources()
