@@ -13,6 +13,11 @@ $perl_ver = '5.006001';
 %requires = (
   'Cache::Bounded' => 1.05,
   'Data::Dumper' => 0,
+  'File::Slurp' => 0,
+  'Getopt::Long' => 0,
   'LWP' => 5,
-  'XML::Simple' => 2
+  'Term::Prompt' => 0,
+  'Test' => 0,
+  'Test::More' => 0,
+  'XML::Simple' => 2,
 );
