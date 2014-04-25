@@ -2,6 +2,7 @@
 
 use Data::Dumper;
 use File::Slurp;
+use Perl::MinimumVersion;
 use strict;
 
 ### Handle version tasks if asked
@@ -39,7 +40,9 @@ eval $text;
 die $@ if $@;
 
 die "Bad config." unless $module && $author && $license && 
-  $abstract && $description && $perl_ver && %requires;
+  $abstract && $description && %requires;
+
+warn "WARNING: Perl Version is now generated, so you don't need it in the config anymnore.\n";
 
 ### Post config
 
@@ -87,13 +90,16 @@ for my $file ( `find lib -type f -name "*.pm"` ) {
   my $name = $1;
   $name =~ s/\//::/g;
   $provides{$name} = { file => $file, version => $version };
+
+  my $min = Perl::MinimumVersion->new( $file );
+  $perl_ver = $min->minimum_version;
+  print "Perl Min Version for $name is $perl_ver\n\n";
 }
 
 $provides = Dumper(\%provides);
 $provides =~ s/\$VAR1 = //;
 $provides =~ s/;$//;
 1 while chomp($provides);
-
 
 ### Write Makefile.PL
 
