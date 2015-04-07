@@ -437,14 +437,15 @@ sub login {
   $self->{raw}->{login} = $self->_xml_response($response);
 
   for my $link ( @{$self->{raw}->{login}->{Link}} ) {
-		if($link->{type}){	
-	    $self->{learned}->{url}->{admin}         = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vcloud+xml';
-	    $self->{learned}->{url}->{entity}        = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.entity+xml';
-	    $self->{learned}->{url}->{extensibility} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.apiextensibility+xml';
-	    $self->{learned}->{url}->{extension}     = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vmwExtension+xml';
-	    $self->{learned}->{url}->{orglist}       = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
-	    $self->{learned}->{url}->{query}         = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.query.queryList+xml';
-		}
+	next 
+		unless defined $link->{type};
+
+    $self->{learned}->{url}->{admin}         = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vcloud+xml';
+    $self->{learned}->{url}->{entity}        = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.entity+xml';
+    $self->{learned}->{url}->{extensibility} = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.apiextensibility+xml';
+    $self->{learned}->{url}->{extension}     = $link->{href} if $link->{type} eq 'application/vnd.vmware.admin.vmwExtension+xml';
+    $self->{learned}->{url}->{orglist}       = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.orgList+xml';
+    $self->{learned}->{url}->{query}         = $link->{href} if $link->{type} eq 'application/vnd.vmware.vcloud.query.queryList+xml';
     #die Dumper($self->{raw}->{login}->{Link});
   }
 
