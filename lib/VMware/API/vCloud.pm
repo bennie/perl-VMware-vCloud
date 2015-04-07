@@ -226,7 +226,7 @@ sub _xml_response {
 sub _parse_xml {
   my $self = shift @_;
   my $xml  = shift @_;
-  my $data = XMLin( $xml, ForceArray => 1 );
+  my $data = XMLin( $xml, KeyAttr => [ qw(id) ], ForceArray => 1, );
   return $data;
 }
 

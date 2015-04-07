@@ -1,16 +1,23 @@
 
               VMware::vCloud - Interface to the VMware vCloud API
 
-================================================================================
+WARNING: This fork is incompatible with VMware::vCloud, as it uses only "id" as 
+XML key, not default set of "name, key, id" (in that order). Name may not be 
+unique and returned datasets contain overwritten data. Due to this change, many
+API call wrappers will fail, without prior adjusting to either work with "id"
+identifier, or handling received ARRAYREF instead of HASHREF (in case of
+missing "id", no grouping is done).
+
+===============================================================================
 SYNOPSIS:
-================================================================================
+===============================================================================
 
   VMware::vcloud provides a programattical interface to vCloud API provided
   for the automation and control of VMware's vCloud Director product.
 
-================================================================================
+===============================================================================
 INSTALLATION:
-================================================================================
+===============================================================================
 
     To install this module type the following:
 
@@ -19,15 +26,15 @@ INSTALLATION:
        make test
        make install
 
-================================================================================
+===============================================================================
 USAGE:
-================================================================================
+===============================================================================
 
     Refer to the module's POD for detailed usage.
 
-================================================================================
+===============================================================================
 AUTHORSHIP:
-================================================================================
+===============================================================================
 
     VMware::vCloud VERSIONTAG (DATETAG)
 

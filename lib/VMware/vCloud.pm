@@ -532,10 +532,11 @@ sub list_orgs {
     $orgs = {};
     my $ret = $self->{api}->org_list();
 
-    for my $orgname ( keys %{$ret->{Org}} ) {
-      warn "Org type of $ret->{Org}->{$orgname}->{type} listed for $orgname\n" unless $ret->{Org}->{$orgname}->{type} eq 'application/vnd.vmware.vcloud.org+xml';
-      my $href = $ret->{Org}->{$orgname}->{href};
-      $orgs->{$orgname} = $href;
+    for my $org ( @{$ret->{Org}} ) {
+      warn "Org type of $org->{type} listed for $org->{name}\n" 
+        unless $org->{type} eq 'application/vnd.vmware.vcloud.org+xml';
+      my $href = $org->{href};
+      $orgs->{$org->{name}} = $href;
     }
     $cache->set('list_orgs:',$orgs); 
   }
