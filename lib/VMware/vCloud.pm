@@ -647,7 +647,7 @@ that Organization.
 sub list_vdcs {
   my $self    = shift @_;
   my $orgname = shift @_;
-  $orgname = undef if $orgname eq 'System'; # Show all if the org is System
+  $orgname = '' if !defined $orgname || $orgname =~ /^[sS]ystem$/; # Show all if the org is System
   my $vdcs = our $cache->get("list_vdcs:$orgname:");
 
   unless ( defined $vdcs ) {
