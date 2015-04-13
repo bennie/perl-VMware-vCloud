@@ -1,12 +1,13 @@
 
               VMware::vCloud - Interface to the VMware vCloud API
 
-WARNING: This fork is incompatible with VMware::vCloud, as it uses only "id" as 
-XML key, not default set of "name, key, id" (in that order). Name may not be 
-unique and returned datasets contain overwritten data. Due to this change, many
-API call wrappers will fail, without prior adjusting to either work with "id"
-identifier, or handling received ARRAYREF instead of HASHREF (in case of
-missing "id", no grouping is done).
+WARNING: This fork is incompatible with original VMware::vCloud, as it uses 
+only "id" as XML key to convert data tree into perl hash. Not implicit set of 
+"name, key, id" (in that order). Name may not be unique and returned datasets 
+contains overwritten data. Due to this change, many API call wrappers will 
+fail, without prior adjusting to either work with "id" identifier, or handling 
+received ARRAYREF instead of HASHREF (in case of missing "id", no associative 
+array is created).
 
 ===============================================================================
 SYNOPSIS:
