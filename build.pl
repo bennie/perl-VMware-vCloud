@@ -202,7 +202,7 @@ sub version_bump {
 sub version_current {
   our $version;
   return $version if defined $version and length $version;
-  $version = `git describe --long | tr '-' ' ' | awk '{ print \$1 }'`;
+  $version = `git describe --long --tags | tr '-' ' ' | awk '{ print \$1 }'`;
   chomp $version;
   $version = '0.01' unless length $version;
   return $version;
