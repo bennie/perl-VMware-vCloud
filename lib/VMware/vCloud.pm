@@ -34,6 +34,26 @@ Director actions.
 If you are looking for a direct and low-level access to the vCloud API, you may 
 want to look at VMware::API::vCloud, which is packaged and used by this module.
 
+=head1 END OF LIFE NOTICE:
+
+VMware marked vCloud Director as "End of Availability" on March 12, 2015.
+(This was as part of vCloud Suite 6. The standalone vCloud Director was EOA
+in September 2013.)
+
+Correspondingly, this module will likely see no further development.
+
+=head1 COMPATIBILITY WARNING:
+
+This fork is incompatible with original VMware::vCloud, as it uses only "id" as
+the XML key to convert its data tree into a perl hash. Not the implicit set of
+"name, key, id" (in that order). Name may not be unique and returned datasets
+can contain overwritten data when used. Due to this change, many API call
+wrappers will  fail, without prior adjusting to either work with "id" identifier,
+or handling received ARRAYREF instead of HASHREF (in case of missing "id",
+no associative array is created).
+
+If you wish to avoid this compatibility change, use release 2.402
+
 =head1 EXAMPLE SCRIPTS
 
 Included in the distribution of this module are several example scripts. 
